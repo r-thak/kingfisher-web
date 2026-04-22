@@ -1,5 +1,9 @@
 .SiteHeader {
   border: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  box-shadow: none !important;
 
   .SearchBox.ui.input {
     color: var(--text-on-dark);

@@ -21,7 +21,6 @@
   flex: 1 1 auto;
 }
 
-/* Mobile first - xs (default) */
 .grid-col-xs-1 {
   flex: 0 0 8.3333333333%;
   max-width: 8.3333333333%;
@@ -82,7 +81,6 @@
   max-width: 100%;
 }
 
-/* Small devices (tablets, 48em and up) */
 @media (min-width: 48em) {
   .grid-col-sm-1 {
     flex: 0 0 8.3333333333%;
@@ -137,7 +135,7 @@
     max-width: 100%;
   }
 }
-/* Medium devices (desktops, 62em and up) */
+
 @media (min-width: 62em) {
   .grid-col-md-1 {
     flex: 0 0 8.3333333333%;
@@ -188,7 +186,7 @@
     max-width: 100%;
   }
 }
-/* Large devices (large desktops, 75em and up) */
+
 @media (min-width: 75em) {
   .grid-col-lg-1 {
     flex: 0 0 8.3333333333%;

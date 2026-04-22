@@ -1,7 +1,6 @@
-// Theme CSS Custom Properties
 
 :root {
-  // Light mode (default)
+
   --bg-primary: #ffffff;
   --bg-secondary: #f9fafb;
   --bg-header: #1b1c1d;
@@ -19,8 +18,9 @@
 
   --accent-red: #E84A27;
 
-  --shadow-card: rgba(0, 0, 0, 0.1);
-  --shadow-hover: rgba(0, 0, 0, 0.15);
+  --shadow-card: none;
+  --shadow-hover: none;
+  color-scheme: light;
 }
 
 [data-theme="dark"] {
@@ -41,6 +41,7 @@
 
   --accent-red: #E84A27;
 
-  --shadow-card: rgba(0, 0, 0, 0.3);
-  --shadow-hover: rgba(0, 0, 0, 0.4);
+  --shadow-card: none;
+  --shadow-hover: none;
+  color-scheme: dark;
 }

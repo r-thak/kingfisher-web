@@ -18,30 +18,30 @@ function Explore() {
   }, []);
 
   return (
-    <div className="Explore">
-      <div className="ui breadcrumb" style={{ marginBottom: '1rem' }}>
-        <a className="section" onClick={() => navigate('/')}>Home</a>
-        <i className="right angle icon divider"></i>
-        <div className="active section">Explore</div>
+    <div className="Explore container">
+      <div className="breadcrumb" style={{ marginBottom: '1rem' }}>
+        <a onClick={() => navigate('/')}>Home</a>
+        <span className="divider">/</span>
+        <div className="active">Explore</div>
       </div>
 
-      <div className="ui large header">
+      <h1 className="large-header">
         Explore Subjects
-        <div className="sub header">Browse courses by subject area available at UIUC.</div>
-      </div>
+        <div className="sub-header">Browse courses by subject area available at UIUC.</div>
+      </h1>
 
       {loading ? (
-        <div className="ui segment" style={{ padding: '4rem', textAlign: 'center' }}>
-          <div className="ui active centered inline loader large"></div>
+        <div className="card" style={{ padding: '4rem', textAlign: 'center' }}>
+          <div className="loader"></div>
           <p style={{ marginTop: '1rem' }}>Loading Subjects...</p>
         </div>
       ) : (
-        <div className="ui four stackable cards">
+        <div className="cards-grid">
           {subjects.map(sub => (
-            <Link key={sub.code} to={`/search?subject=${sub.code}`} className="ui raised card">
+            <Link key={sub.code} to={`/search?subject=${sub.code}`} className="card" style={{ textDecoration: 'none' }}>
               <div className="content">
-                <div className="header">{sub.code}</div>
-                <div className="description">
+                <h3 className="medium-header" style={{ margin: 0 }}>{sub.code}</h3>
+                <div className="description" style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
                   {sub.name || sub.description || 'View courses'}
                 </div>
               </div>

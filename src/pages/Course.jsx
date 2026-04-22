@@ -83,32 +83,32 @@ function Course() {
 
   return (
     <div className="Course">
-      <div className="ui breadcrumb" style={{ marginBottom: '1.5rem' }}>
-        <a className="section" onClick={() => navigate('/')}>Home</a>
-        <i className="right angle icon divider"></i>
-        <a className="section" onClick={() => navigate(`/search?subject=${subjectCode}`)}>{subjectCode}</a>
-        <i className="right angle icon divider"></i>
-        <div className="active section">{course.number}</div>
+      <div className="breadcrumb" style={{ marginBottom: '1.5rem' }}>
+        <a onClick={() => navigate('/')}>Home</a>
+        <span className="divider">/</span>
+        <a onClick={() => navigate(`/search?subject=${subjectCode}`)}>{subjectCode}</a>
+        <span className="divider">/</span>
+        <div className="active">{course.number}</div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1em', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        <div className="ui huge header" style={{ margin: 0 }}>
+        <h1 className="huge-header" style={{ margin: 0 }}>
           {course.title || course.name}
-          <div className="sub header" style={{ fontWeight: 600, color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+          <div className="sub-header" style={{ fontWeight: 600, color: 'var(--text-muted)', marginTop: '0.25rem' }}>
             {subjectCode} {course.number}
           </div>
-        </div>
-        <button className="ui secondary button" onClick={() => navigate(-1)}>
+        </h1>
+        <button className="btn btn-secondary" onClick={() => navigate(-1)}>
           Back to Results
         </button>
       </div>
 
-      <div className="ui stackable grid">
-        <div className="eleven wide column">
+      <div className="grid">
+        <div className="col col-11">
           {grades && (
             <>
-              <div className="ui segment">
-                <div className="ui medium header" style={{ marginBottom: '1.5rem' }}>Cumulative Grade Distribution</div>
+              <div className="card">
+                <h2 className="medium-header" style={{ marginBottom: '1.5rem' }}>Cumulative Grade Distribution</h2>
                 <ReactECharts
                   option={distributionOption}
                   style={{ height: '350px', width: '100%' }}
@@ -116,24 +116,24 @@ function Course() {
                 />
               </div>
 
-              <div className="ui segment">
+              <div className="card">
                 <GpaTrendChart courseOfferings={grades.courseOfferings || []} />
               </div>
             </>
           )}
 
-          <div className="ui segment">
-            <div className="ui medium header">Course Description</div>
+          <div className="card">
+            <h2 className="medium-header">Course Description</h2>
             <p style={{ fontSize: '1.1em', lineHeight: '1.5' }}>
               {course.description || 'No description available for this course.'}
             </p>
           </div>
         </div>
 
-        <div className="five wide column">
-          <div className="ui segment">
-            <div className="ui small header">Summary Stats</div>
-            <div className="ui list">
+        <div className="col col-5">
+          <div className="card">
+            <h3 className="small-header">Summary Stats</h3>
+            <div className="list">
               <div className="item">
                 <div className="content">
                   <div className="header">Average GPA</div>
@@ -142,14 +142,14 @@ function Course() {
                   </div>
                 </div>
               </div>
-              <div className="ui divider"></div>
+              <div className="divider"></div>
               <div className="item">
                 <div className="content">
                   <div className="header">Total Students</div>
                   <div className="description">{cum.total?.toLocaleString() || 0} students graded</div>
                 </div>
               </div>
-              <div className="ui divider"></div>
+              <div className="divider"></div>
               {course.creditHours && (
                 <div className="item">
                   <div className="content">

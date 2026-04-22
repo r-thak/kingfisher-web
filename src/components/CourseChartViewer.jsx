@@ -54,13 +54,12 @@ function CourseChartViewer({ gradesData }) {
   }, [selectedTermId, selectedInstructorId, cumulativeGrades, courseOfferings]);
 
   return (
-    <div className="ui stackable grid">
-      <div className="five wide column">
-        <div className="ui form">
-          <div className="field">
+    <div className="grid">
+      <div className="col col-5">
+        <div className="form">
+          <div className="form-group">
             <label>Instructors</label>
             <select
-              className="ui fluid dropdown"
               value={selectedInstructorId}
               onChange={e => setSelectedInstructorId(Number(e.target.value))}
             >
@@ -69,10 +68,9 @@ function CourseChartViewer({ gradesData }) {
               ))}
             </select>
           </div>
-          <div className="field">
+          <div className="form-group">
             <label>Semesters</label>
             <select
-              className="ui fluid dropdown"
               value={selectedTermId}
               onChange={e => setSelectedTermId(Number(e.target.value))}
             >
@@ -83,7 +81,7 @@ function CourseChartViewer({ gradesData }) {
           </div>
         </div>
       </div>
-      <div className="eleven wide column">
+      <div className="col col-11">
         <CourseChart grades={activeGrades} />
         {activeGrades && (
           <div style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-muted)' }}>

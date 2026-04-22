@@ -1,5 +1,4 @@
 import React from "react";
-import { Card, Button, Icon, Label } from "semantic-ui-react";
 
 const PromoCard = React.forwardRef(({ title, description, link, dateAdded }, ref) => {
   const isNew = dateAdded
@@ -12,35 +11,27 @@ const PromoCard = React.forwardRef(({ title, description, link, dateAdded }, ref
     : false;
 
   return (
-    <div ref={ref}>
-      <Card fluid raised className="PromoCard">
-        <Card.Content>
-          <Card.Header>
-            {title}
-            {isNew && (
-              <Label
-                color="red"
-                size="mini"
-                style={{ marginLeft: "8px", verticalAlign: "middle" }}
-              >
-                New!
-              </Label>
-            )}
-          </Card.Header>
-          <Card.Description>{description}</Card.Description>
-        </Card.Content>
-        <Button
-          as="a"
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          attached="bottom"
-          secondary
-        >
-          <Icon name="external alternate" />
-          Visit {title}
-        </Button>
-      </Card>
+    <div ref={ref} className="card PromoCard" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ flex: 1 }}>
+        <h3 className="medium-header" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {title}
+          {isNew && (
+            <span className="pill" style={{ background: 'var(--accent-red)', color: 'white', fontSize: '0.7em' }}>
+              New!
+            </span>
+          )}
+        </h3>
+        <p className="sub-header" style={{ marginTop: '0.5rem' }}>{description}</p>
+      </div>
+      <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn btn-secondary"
+        style={{ marginTop: '1.5rem', width: '100%' }}
+      >
+        Visit {title}
+      </a>
     </div>
   );
 });

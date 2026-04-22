@@ -4,7 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 
 function CourseChart({ grades }) {
   const { theme } = useTheme();
-  
+
   if (!grades) return null;
 
   const labels = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
@@ -47,7 +47,7 @@ function CourseChart({ grades }) {
         type: 'bar',
         data: data,
         itemStyle: {
-          color: '#E84A27' // UIUC Orange
+          color: '#E84A27'
         }
       }
     ]
@@ -55,9 +55,9 @@ function CourseChart({ grades }) {
 
   return (
     <div className="CourseChart">
-      <ReactECharts 
-        option={option} 
-        style={{ height: '400px', width: '100%' }} 
+      <ReactECharts
+        option={option}
+        style={{ height: '400px', width: '100%' }}
         theme={theme === 'dark' ? 'dark' : undefined}
       />
     </div>

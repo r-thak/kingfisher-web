@@ -27,7 +27,6 @@
   }
 }
 
-/* Mobile first - xs (default) */
 @for $i from 1 through 12 {
   .grid-col-xs-#{$i} {
     flex: 0 0 math.percentage(math.div($i, 12));
@@ -35,7 +34,6 @@
   }
 }
 
-/* Small devices (tablets, 48em and up) */
 @media (min-width: 48em) {
   @for $i from 1 through 12 {
     .grid-col-sm-#{$i} {
@@ -49,7 +47,6 @@
   }
 }
 
-/* Medium devices (desktops, 62em and up) */
 @media (min-width: 62em) {
   @for $i from 1 through 12 {
     .grid-col-md-#{$i} {
@@ -59,7 +56,6 @@
   }
 }
 
-/* Large devices (large desktops, 75em and up) */
 @media (min-width: 75em) {
   @for $i from 1 through 12 {
     .grid-col-lg-#{$i} {

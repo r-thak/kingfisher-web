@@ -1,5 +1,4 @@
 import React from "react";
-import { Header, Segment, Label } from "semantic-ui-react";
 import { useNavigate } from "react-router-dom";
 
 const CourseSearchResultItem = ({ course }) => {
@@ -10,18 +9,16 @@ const CourseSearchResultItem = ({ course }) => {
   };
 
   return (
-    <Segment onClick={handleClick} className="CourseSearchResultItem" style={{ cursor: 'pointer', marginBottom: '10px' }}>
-      <Header>
-        <Header.Content>
-          {course.title || course.name}
-          <Header.Subheader>
-            <Label className="subject-pill">
-              {course.subject?.code || course.subject} {course.number}
-            </Label>
-          </Header.Subheader>
-        </Header.Content>
-      </Header>
-    </Segment>
+    <div onClick={handleClick} className="card CourseSearchResultItem" style={{ cursor: 'pointer', marginBottom: '10px' }}>
+      <h3 className="medium-header" style={{ margin: 0 }}>
+        {course.title || course.name}
+        <div className="sub-header" style={{ marginTop: '0.25rem' }}>
+          <span className="pill">
+            {course.subject?.code || course.subject} {course.number}
+          </span>
+        </div>
+      </h3>
+    </div>
   );
 };
 

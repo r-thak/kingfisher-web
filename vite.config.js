@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5903,
     proxy: {
       '/v1': {
-        target: 'http://localhost:5902',
+        target: 'https://kingfisherapi.rthak.com',
         changeOrigin: true,
       }
     }

@@ -1,0 +1,9 @@
+.SiteFooter {
+  margin-top: 50px;
+  color: var(--text-secondary);
+  margin-bottom: 15px;
+}
+.SiteFooter .logo {
+  width: 36px;
+  opacity: 0.3;
+}

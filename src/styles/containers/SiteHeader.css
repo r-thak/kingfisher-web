@@ -1,0 +1,48 @@
+.SiteHeader {
+  border: none !important;
+}
+.SiteHeader .SearchBox.ui.input {
+  color: var(--text-on-dark);
+}
+.SiteHeader .SearchBox.ui.input input {
+  background: var(--bg-input);
+  color: var(--text-on-dark);
+  border: 0;
+}
+.SiteHeader .SearchBox.ui.input input::selection {
+  color: var(--text-on-dark);
+}
+.SiteHeader .toggle-button {
+  display: none;
+}
+.SiteHeader .toggleable {
+  display: flex;
+  flex: 1;
+}
+.SiteHeader .madgrades-logo a {
+  font-size: 18px;
+}
+.SiteHeader .menu .item.active {
+  border-color: var(--accent-red) !important;
+}
+
+@media only screen and (max-width: 767px) {
+  .SiteHeader .madgrades-logo {
+    text-align: center;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .SiteHeader .toggle-button {
+    display: block;
+    width: 40px;
+  }
+  .SiteHeader .menu .item.active {
+    border-color: transparent !important;
+  }
+  .SiteHeader .toggleable {
+    display: none;
+  }
+  .SiteHeader .toggled {
+    display: block;
+  }
+}

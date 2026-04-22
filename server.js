@@ -2,7 +2,7 @@ import { serve } from "bun";
 import { join } from "path";
 import { readFileSync, existsSync } from "fs";
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5903;
 const DIST_DIR = "./dist";
 
 serve({

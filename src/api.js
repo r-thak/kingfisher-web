@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://kingfisherapi.rthak.com/v1',
+  baseURL: 'http://localhost:5902/v1',
   headers: {
     'Content-Type': 'application/json',
   },

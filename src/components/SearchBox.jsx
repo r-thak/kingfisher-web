@@ -29,7 +29,7 @@ function SearchBox() {
     <div className="search-box SearchBox" style={{ minWidth: '250px', width: '100%' }}>
       <input
         type="text"
-        placeholder="Search courses..."
+        placeholder="Search for 'CS 225', 'Algorithms', or 'Comp Sci'..."
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
         onKeyDown={onKeyDown}

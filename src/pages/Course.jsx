@@ -4,6 +4,7 @@ import ReactECharts from 'echarts-for-react';
 import { getCourse, getCourseGrades } from '../api';
 import { useTheme } from '../context/ThemeContext';
 import GpaTrendChart from '../components/GpaTrendChart';
+import CourseChartViewer from '../components/CourseChartViewer';
 
 function Course() {
   const { courseId } = useParams();
@@ -108,12 +109,8 @@ function Course() {
           {grades && (
             <>
               <div className="card">
-                <h2 className="medium-header" style={{ marginBottom: '1.5rem' }}>Cumulative Grade Distribution</h2>
-                <ReactECharts
-                  option={distributionOption}
-                  style={{ height: '350px', width: '100%' }}
-                  theme={theme === 'dark' ? 'dark' : undefined}
-                />
+                <h2 className="medium-header" style={{ marginBottom: '1.5rem' }}>Grade Distribution</h2>
+                <CourseChartViewer gradesData={grades} />
               </div>
 
               <div className="card">
@@ -160,6 +157,23 @@ function Course() {
               )}
             </div>
           </div>
+
+          {course.crosslisted && course.crosslisted.length > 0 && (
+            <div className="card" style={{ marginTop: '1.5rem' }}>
+              <h3 className="small-header">Crosslisted As</h3>
+              <div className="list">
+                {course.crosslisted.map(cl => (
+                  <div key={cl.id} className="item" style={{ cursor: 'pointer' }} onClick={() => navigate(`/courses/${cl.id}`)}>
+                    <div className="content">
+                      <div className="header" style={{ color: '#E84A27' }}>
+                        {cl.subject?.code || cl.subject} {cl.number}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

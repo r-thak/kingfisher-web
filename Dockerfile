@@ -16,6 +16,6 @@ WORKDIR /app
 COPY --from=build /app/dist ./dist
 COPY server.js ./
 
-EXPOSE 3000
+EXPOSE 5903
 
 CMD ["bun", "run", "server.js"]

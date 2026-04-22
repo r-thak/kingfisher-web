@@ -2,14 +2,12 @@
   margin: 1.5em 0;
 }
 
-/* Small disclaimer under the promo heading */
 .promo-subheader {
   font-size: 0.95rem;
   color: rgba(0, 0, 0, 0.6);
   margin-top: 0.25rem;
 }
 
-/* Responsive tiled layout for promo cards */
 .promo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -18,13 +16,11 @@
   margin-top: 1rem;
 }
 
-/* Allow Semantic UI "fluid" cards to tile by overriding width */
 .promo-grid .ui.card.fluid {
   width: auto;
   max-width: 100%;
 }
 
-/* Make cards equal height and keep the button attached at bottom */
 .promo-grid .ui.card {
   margin: 0;
   display: flex;

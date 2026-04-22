@@ -1,6 +1,5 @@
 @charset "UTF-8";
-/* Theme variables and overrides */
-/* any global styles for every page go here */
+
 @import url("App.css");
 @import url("pages/Course.css");
 @import url("pages/Search.css");
@@ -10,6 +9,12 @@
 @import url("containers/SiteFooter.css");
 @import url("components/SearchBox.css");
 @import url("components/PromoCard.css");
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 :root {
   --bg-primary: #ffffff;
   --bg-secondary: #f9fafb;
@@ -24,8 +29,20 @@
   --border-color: #d4d4d5;
   --divider-color: #888888;
   --accent-red: #c5050c;
-  --shadow-card: rgba(0, 0, 0, 0.1);
-  --shadow-hover: rgba(0, 0, 0, 0.15);
+  --shadow-card: none;
+  --shadow-hover: none;
+  color-scheme: light;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 [data-theme=dark] {
@@ -42,8 +59,9 @@
   --border-color: #303030;
   --divider-color: #303030;
   --accent-red: #c5050c;
-  --shadow-card: rgba(0, 0, 0, 0.3);
-  --shadow-hover: rgba(0, 0, 0, 0.4);
+  --shadow-card: none;
+  --shadow-hover: none;
+  color-scheme: dark;
 }
 
 .ui.inverted.menu {
@@ -111,7 +129,6 @@
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 .Search .ui.segment:not(.inverted)::before {
@@ -122,7 +139,6 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.6s ease;
 }
 .Search .ui.segment:not(.inverted):hover {
   backdrop-filter: blur(12px);
@@ -169,15 +185,33 @@
   opacity: 0.8;
 }
 .ui.header a {
-  transition: color 0.2s ease;
 }
 
 [data-theme=dark] .ui.inverted.menu {
   background: var(--bg-header);
 }
+[data-theme=dark] .ui.segment,
 [data-theme=dark] .ui.inverted.segment {
-  background: var(--bg-header);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   box-shadow: none !important;
+}
+[data-theme=dark] .ui.segment .ui.header {
+  color: var(--text-primary);
+}
+[data-theme=dark] .ui.breadcrumb .section,
+[data-theme=dark] .ui.breadcrumb .divider {
+  color: var(--text-secondary);
+}
+[data-theme=dark] .ui.breadcrumb .active.section {
+  color: var(--text-primary);
+}
+[data-theme=dark] .ui.breadcrumb a.section {
+  color: #2185d0;
+}
+[data-theme=dark] .ui.breadcrumb a.section:hover {
+  color: #1678c2;
 }
 [data-theme=dark] a {
   color: #e0e0e0;
@@ -216,7 +250,6 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.02);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 [data-theme=dark] .ui.card > .content,
 [data-theme=dark] .ui.cards > .card > .content {
@@ -329,7 +362,7 @@
   color: #ffffff;
 }
 [data-theme=dark] {
-  /* ECharts (echarts-for-react) dark-mode overrides */
+
 }
 [data-theme=dark] .echarts-for-react,
 [data-theme=dark] .echarts {
@@ -337,7 +370,7 @@
   background: transparent;
 }
 [data-theme=dark] {
-  /* ECharts tooltips are often appended to <body> — ensure dark styling when site is dark */
+
 }
 [data-theme=dark] .echarts-tooltip,
 [data-theme=dark] .echarts-for-react .echarts-tooltip {
@@ -347,7 +380,7 @@
   box-shadow: 0 4px 12px var(--shadow-card) !important;
 }
 [data-theme=dark] {
-  /* DOM-rendered legend/labels fallback */
+
 }
 [data-theme=dark] .echarts-for-react .legend,
 [data-theme=dark] .echarts-for-react .echarts-legend {
@@ -540,7 +573,7 @@ html,
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
 }
 
 html {
@@ -556,7 +589,6 @@ span {
   word-wrap: break-word;
 }
 
-/* Mobile */
 @media only screen and (max-width: 767px) {
   [class*="mobile hidden"],
   [class*="tablet only"]:not(.mobile),
@@ -567,7 +599,7 @@ span {
     display: none !important;
   }
 }
-/* Tablet / iPad Portrait */
+
 @media only screen and (min-width: 768px) and (max-width: 991px) {
   [class*="mobile only"]:not(.tablet),
   [class*="tablet hidden"],
@@ -578,7 +610,7 @@ span {
     display: none !important;
   }
 }
-/* Computer / Desktop / iPad Landscape */
+
 @media only screen and (min-width: 992px) and (max-width: 1199px) {
   [class*="mobile only"]:not(.computer),
   [class*="tablet only"]:not(.computer),
@@ -589,7 +621,7 @@ span {
     display: none !important;
   }
 }
-/* Large Monitor */
+
 @media only screen and (min-width: 1200px) and (max-width: 1919px) {
   [class*="mobile only"]:not([class*="large screen"]),
   [class*="tablet only"]:not([class*="large screen"]),
@@ -600,7 +632,7 @@ span {
     display: none !important;
   }
 }
-/* Widescreen Monitor */
+
 @media only screen and (min-width: 1920px) {
   [class*="mobile only"]:not([class*=widescreen]),
   [class*="tablet only"]:not([class*=widescreen]),

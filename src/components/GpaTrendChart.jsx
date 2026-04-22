@@ -5,14 +5,11 @@ import { useTheme } from '../context/ThemeContext';
 function GpaTrendChart({ courseOfferings }) {
   const { theme } = useTheme();
 
-  // Sort offerings by year and term (simplified since we have yearTerm like "2025-sp")
-  // For a proper sort, we'd need to map "sp", "su", "fa", "wi" to numeric values.
-  // Sort offerings by year and term correctly
   const seasonOrder = { 'wi': 1, 'sp': 2, 'su': 3, 'fa': 4 };
   const sortedOfferings = [...courseOfferings].sort((a, b) => {
     const [yearA, seasonA] = a.yearTerm.split('-');
     const [yearB, seasonB] = b.yearTerm.split('-');
-    
+
     if (yearA !== yearB) {
       return parseInt(yearA) - parseInt(yearB);
     }
@@ -74,7 +71,7 @@ function GpaTrendChart({ courseOfferings }) {
         smooth: true,
         symbolSize: 8,
         itemStyle: {
-          color: '#E84A27' // UIUC Orange
+          color: '#E84A27'
         },
         lineStyle: {
           width: 3

@@ -13,7 +13,7 @@ function Home() {
   };
 
   return (
-    <div className="Home container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+    <div className="Home" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
       <div style={{ paddingTop: '5rem', marginBottom: '4rem', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h1 className="huge-header" style={{ fontSize: '3.5rem' }}>
           Kingfisher

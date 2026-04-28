@@ -2,51 +2,11 @@ import React, { useState, useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { useTheme } from '../context/ThemeContext';
 
-function CourseChartViewer({ gradesData }) {
+function CourseChartViewer({ gradesData, selectedTermId, selectedInstructorId }) {
   const { theme } = useTheme();
-  const [selectedTermId, setSelectedTermId] = useState(0);
-  const [selectedInstructorId, setSelectedInstructorId] = useState(0);
 
   const cumulativeGrades = gradesData?.cumulative;
   const courseOfferings = gradesData?.courseOfferings || [];
-
-  const instructorOptions = useMemo(() => {
-    const instructorsMap = new Map();
-    instructorsMap.set(0, { id: 0, name: 'All instructors' });
-    courseOfferings.forEach(offering => {
-      if (selectedTermId === 0 || offering.termId === selectedTermId) {
-        offering.sections?.forEach(section => {
-          if (section.instructor) {
-            instructorsMap.set(section.instructor.id, section.instructor);
-          }
-        });
-      }
-    });
-    return Array.from(instructorsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [courseOfferings, selectedTermId]);
-
-  const termOptions = useMemo(() => {
-    const opts = [{ termId: 0, yearTerm: 'All semesters' }];
-    courseOfferings.forEach(o => {
-      const taughtByInstructor = selectedInstructorId === 0 || o.sections?.some(s => s.instructor?.id === selectedInstructorId);
-      if (taughtByInstructor) {
-        opts.push({ termId: o.termId, yearTerm: o.yearTerm });
-      }
-    });
-    return opts;
-  }, [courseOfferings, selectedInstructorId]);
-
-  React.useEffect(() => {
-    if (selectedInstructorId !== 0 && !instructorOptions.some(i => i.id === selectedInstructorId)) {
-      setSelectedInstructorId(0);
-    }
-  }, [instructorOptions, selectedInstructorId]);
-
-  React.useEffect(() => {
-    if (selectedTermId !== 0 && !termOptions.some(t => t.termId === selectedTermId)) {
-      setSelectedTermId(0);
-    }
-  }, [termOptions, selectedTermId]);
 
   const activeGrades = useMemo(() => {
     if (selectedTermId === 0 && selectedInstructorId === 0) return cumulativeGrades;
@@ -95,7 +55,7 @@ function CourseChartViewer({ gradesData }) {
   const distributionOption = {
     backgroundColor: 'transparent',
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+    grid: { left: '3%', right: '4%', bottom: '3%', top: '3%', containLabel: true },
     xAxis: {
       type: 'category',
       data: ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'],
@@ -122,39 +82,6 @@ function CourseChartViewer({ gradesData }) {
 
   return (
     <div className="CourseChartViewer">
-      <div className="grid" style={{ marginBottom: '1rem' }}>
-        <div className="col col-8">
-          <div className="form-group">
-            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.4rem', display: 'block' }}>Instructor</label>
-            <select
-              className="ui dropdown"
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }}
-              value={selectedInstructorId}
-              onChange={e => setSelectedInstructorId(Number(e.target.value))}
-            >
-              {instructorOptions.map(inst => (
-                <option key={inst.id} value={inst.id}>{inst.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="col col-8">
-          <div className="form-group">
-            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.4rem', display: 'block' }}>Semester</label>
-            <select
-              className="ui dropdown"
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', color: 'var(--text-color)' }}
-              value={selectedTermId}
-              onChange={e => setSelectedTermId(Number(e.target.value))}
-            >
-              {termOptions.map(term => (
-                <option key={term.termId} value={term.termId}>{term.yearTerm}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
       <div className="chart-container">
         <ReactECharts
           option={distributionOption}
@@ -164,8 +91,8 @@ function CourseChartViewer({ gradesData }) {
       </div>
 
       {activeGrades && (
-        <div style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-          <span>Total Grades: <strong>{activeGrades.total?.toLocaleString()}</strong></span>
+        <div style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.95rem', fontFamily: 'Lato, "Helvetica Neue", Arial, Helvetica, sans-serif' }}>
+          <span>Total Grades: <strong style={{ color: 'var(--text-primary)' }}>{activeGrades.total?.toLocaleString()}</strong></span>
           <span style={{ margin: '0 1rem' }}>|</span>
           <span>Average GPA: <strong style={{ color: '#983220' }}>{activeGrades.gpa?.toFixed(2) || 'N/A'}</strong></span>
         </div>

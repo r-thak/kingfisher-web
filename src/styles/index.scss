@@ -1,5 +1,13 @@
 @use "variables";
 @use "base";
+@use "pages/Course";
+@use "pages/Search";
+@use "pages/Home";
+@use "pages/Explore";
+@use "containers/SiteFooter";
+@use "containers/SiteHeader";
+@use "components/PromoCard";
+@use "components/Grid";
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -8,14 +16,6 @@
   padding: 0;
   box-sizing: border-box;
 }
-
-@import url("App.css");
-@import url("pages/Course.css");
-@import url("pages/Search.css");
-@import url("pages/Home.css");
-@import url("pages/Explore.css");
-@import url("containers/SiteFooter.css");
-@import url("containers/SiteHeader.css");
 
 html,
 body {

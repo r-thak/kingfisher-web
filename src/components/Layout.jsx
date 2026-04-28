@@ -49,7 +49,7 @@ function Layout({ children }) {
         </div>
       </header>
 
-      <main style={{ flex: 1, padding: '2rem 0' }}>
+      <main style={{ flex: 1, padding: '1rem 0' }}>
         <div className="container">
           {children}
         </div>
@@ -77,7 +77,7 @@ function Layout({ children }) {
               rel="noopener noreferrer"
               className="pill"
               style={{ 
-                background: '#00bfa5', 
+                background: 'var(--accent-red)', 
                 color: 'white', 
                 border: 'none', 
                 borderRadius: '8px',
@@ -98,7 +98,7 @@ function Layout({ children }) {
               rel="noopener noreferrer"
               className="pill"
               style={{ 
-                backgroundColor: '#1b1c1d', 
+                backgroundColor: 'var(--bg-header)', 
                 color: 'white', 
                 border: 'none',
                 borderRadius: '8px',

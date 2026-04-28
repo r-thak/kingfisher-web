@@ -71,7 +71,7 @@ function GpaTrendChart({ courseOfferings }) {
         smooth: true,
         symbolSize: 8,
         itemStyle: {
-          color: '#E84A27'
+          color: '#983220'
         },
         lineStyle: {
           width: 3
@@ -84,13 +84,14 @@ function GpaTrendChart({ courseOfferings }) {
             x2: 0,
             y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(232, 74, 39, 0.3)' },
-              { offset: 1, color: 'rgba(232, 74, 39, 0)' }
+              { offset: 0, color: 'rgba(152, 50, 32, 0.3)' },
+              { offset: 1, color: 'rgba(152, 50, 32, 0)' }
             ]
           }
         }
       }
-    ]
+    ],
+    animation: false
   };
 
   return (

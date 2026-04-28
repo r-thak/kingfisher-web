@@ -9,11 +9,10 @@
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 2px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-  transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s;
+  transition: background-color 0.2s, border-color 0.2s;
   
   &.raised {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -22,7 +21,7 @@
 
 h1, .huge-header {
   font-size: 2.25rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.1;
   margin: 0 0 1.25rem;
   color: var(--text-primary);
@@ -31,7 +30,7 @@ h1, .huge-header {
 
 h2, .large-header {
   font-size: 1.875rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0 0 1rem;
   letter-spacing: -0.01em;
 }
@@ -56,7 +55,7 @@ h3, .medium-header {
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 2px;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s, color 0.2s;
@@ -75,16 +74,14 @@ h3, .medium-header {
     background-color: #f05a38; 
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
-  &:active { 
-    // placeholder
-  }
 }
 
 .btn-secondary {
-  background-color: var(--bg-header);
-  color: #fff;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   &:hover { 
-    background-color: #204070;
+    background-color: var(--bg-input);
   }
 }
 
@@ -101,7 +98,7 @@ h3, .medium-header {
     flex: 1;
     padding: 0.75rem 1rem;
     border: 1px solid var(--border-color);
-    border-radius: 8px 0 0 8px;
+    border-radius: 2px 0 0 2px;
     font-size: 1rem;
     background: var(--bg-primary);
     color: var(--text-primary);
@@ -114,7 +111,7 @@ h3, .medium-header {
   }
   
   .btn {
-    border-radius: 0 8px 8px 0;
+    border-radius: 0 2px 2px 0;
   }
 }
 
@@ -282,7 +279,7 @@ h3, .medium-header {
   align-items: center;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 0 0.75rem;
   transition: background-color 0.2s, border-color 0.2s;
   
@@ -325,7 +322,7 @@ h3, .medium-header {
     width: 100%;
     padding: 0.75rem 1rem;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 2px;
     background: var(--bg-primary);
     color: var(--text-primary);
     font-size: 0.9375rem;

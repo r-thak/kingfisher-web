@@ -1,16 +1,16 @@
 
 :root {
 
-  --color-primary: #E84A27;
-  --color-primary-dark: #C83A17;
-  --color-primary-light: #FF6A47;
+  --color-primary: #983220;
+  --color-primary-dark: #7a281a;
+  --color-primary-light: #b34a38;
   --color-secondary: #13294B;
   --color-secondary-dark: #0D1930;
   --color-secondary-light: #204070;
 
   --color-background: #F9FAFB;
   --color-surface: #FFFFFF;
-  --color-text-main: #1F2937;
+  --color-text-main: #13294B;
   --color-text-muted: #6B7280;
   --color-border: #E5E7EB;
   --color-border-hover: #D1D5DB;
@@ -96,7 +96,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-md);
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
   border: 1px solid transparent;
   font-size: 1rem;
 }
@@ -151,7 +151,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   font-size: 1rem;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
   background-color: var(--color-surface);
   color: var(--color-text-main);
 }
@@ -159,7 +159,7 @@ h1, h2, h3, h4, h5, h6 {
 .input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(232, 74, 39, 0.2);
+  box-shadow: 0 0 0 3px rgba(152, 50, 32, 0.2);
 }
 
 .site-header {

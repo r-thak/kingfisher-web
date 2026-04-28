@@ -13,7 +13,7 @@
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s;
   
   &.raised {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -40,6 +40,7 @@ h3, .medium-header {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 0.75rem;
+  color: var(--text-header);
 }
 
 .sub-header {
@@ -58,7 +59,7 @@ h3, .medium-header {
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s, color 0.2s;
   border: 1px solid transparent;
   font-size: 0.9375rem;
   text-decoration: none;
@@ -74,14 +75,16 @@ h3, .medium-header {
     background-color: #f05a38; 
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
-  &:active { }
+  &:active { 
+    // placeholder
+  }
 }
 
 .btn-secondary {
-  background-color: #1b1c1d;
+  background-color: var(--bg-header);
   color: #fff;
   &:hover { 
-    background-color: #2d2e2f;
+    background-color: #204070;
   }
 }
 
@@ -167,7 +170,7 @@ h3, .medium-header {
 
 .breadcrumb {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   font-size: 0.9375rem;
   color: var(--text-muted);
   margin-bottom: 1.5rem;
@@ -225,7 +228,7 @@ h3, .medium-header {
 }
 
 .SiteHeader {
-  background: #1b1c1d;
+  background: var(--bg-header);
   color: #fff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   position: sticky;
@@ -260,7 +263,7 @@ h3, .medium-header {
         text-decoration: none;
         font-weight: 500;
         border-radius: 6px;
-        transition: all 0.2s;
+        transition: color 0.2s;
         
         &:hover { 
           color: #fff;
@@ -281,7 +284,7 @@ h3, .medium-header {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 0 0.75rem;
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s;
   
   &:focus-within {
     background: rgba(255, 255, 255, 0.1);
@@ -326,7 +329,7 @@ h3, .medium-header {
     background: var(--bg-primary);
     color: var(--text-primary);
     font-size: 0.9375rem;
-    transition: all 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
     &:focus { 
       outline: none; 
       border-color: var(--accent-red);

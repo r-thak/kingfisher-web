@@ -14,20 +14,39 @@ function CourseChartViewer({ gradesData }) {
     const instructorsMap = new Map();
     instructorsMap.set(0, { id: 0, name: 'All instructors' });
     courseOfferings.forEach(offering => {
-      offering.sections?.forEach(section => {
-        if (section.instructor) {
-          instructorsMap.set(section.instructor.id, section.instructor);
-        }
-      });
+      if (selectedTermId === 0 || offering.termId === selectedTermId) {
+        offering.sections?.forEach(section => {
+          if (section.instructor) {
+            instructorsMap.set(section.instructor.id, section.instructor);
+          }
+        });
+      }
     });
     return Array.from(instructorsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [courseOfferings]);
+  }, [courseOfferings, selectedTermId]);
 
   const termOptions = useMemo(() => {
     const opts = [{ termId: 0, yearTerm: 'All semesters' }];
-    courseOfferings.forEach(o => opts.push({ termId: o.termId, yearTerm: o.yearTerm }));
+    courseOfferings.forEach(o => {
+      const taughtByInstructor = selectedInstructorId === 0 || o.sections?.some(s => s.instructor?.id === selectedInstructorId);
+      if (taughtByInstructor) {
+        opts.push({ termId: o.termId, yearTerm: o.yearTerm });
+      }
+    });
     return opts;
-  }, [courseOfferings]);
+  }, [courseOfferings, selectedInstructorId]);
+
+  React.useEffect(() => {
+    if (selectedInstructorId !== 0 && !instructorOptions.some(i => i.id === selectedInstructorId)) {
+      setSelectedInstructorId(0);
+    }
+  }, [instructorOptions, selectedInstructorId]);
+
+  React.useEffect(() => {
+    if (selectedTermId !== 0 && !termOptions.some(t => t.termId === selectedTermId)) {
+      setSelectedTermId(0);
+    }
+  }, [termOptions, selectedTermId]);
 
   const activeGrades = useMemo(() => {
     if (selectedTermId === 0 && selectedInstructorId === 0) return cumulativeGrades;
@@ -96,8 +115,9 @@ function CourseChartViewer({ gradesData }) {
         activeGrades.dPlus || 0, activeGrades.d || 0, activeGrades.dMinus || 0,
         activeGrades.f || 0
       ] : [],
-      itemStyle: { color: '#E84A27' }
-    }]
+      itemStyle: { color: '#983220' }
+    }],
+    animation: false
   };
 
   return (
@@ -147,7 +167,7 @@ function CourseChartViewer({ gradesData }) {
         <div style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
           <span>Total Grades: <strong>{activeGrades.total?.toLocaleString()}</strong></span>
           <span style={{ margin: '0 1rem' }}>|</span>
-          <span>Average GPA: <strong style={{ color: '#E84A27' }}>{activeGrades.gpa?.toFixed(2) || 'N/A'}</strong></span>
+          <span>Average GPA: <strong style={{ color: '#983220' }}>{activeGrades.gpa?.toFixed(2) || 'N/A'}</strong></span>
         </div>
       )}
     </div>

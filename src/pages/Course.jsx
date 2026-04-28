@@ -76,7 +76,7 @@ function Course() {
         cum.dPlus || 0, cum.d || 0, cum.dMinus || 0,
         cum.f || 0
       ],
-      itemStyle: { color: '#E84A27' }
+      itemStyle: { color: 'var(--accent-red)' }
     }]
   };
 
@@ -134,7 +134,7 @@ function Course() {
               <div className="item">
                 <div className="content">
                   <div className="header">Average GPA</div>
-                  <div className="description" style={{ fontSize: '1.5em', color: '#E84A27', fontWeight: 'bold', marginTop: '0.2rem' }}>
+                  <div className="description" style={{ fontSize: '1.5em', color: 'var(--accent-red)', fontWeight: 'bold', marginTop: '0.2rem' }}>
                     {cum.gpa ? cum.gpa.toFixed(2) : 'N/A'}
                   </div>
                 </div>
@@ -165,7 +165,7 @@ function Course() {
                 {course.crosslisted.map(cl => (
                   <div key={cl.id} className="item" style={{ cursor: 'pointer' }} onClick={() => navigate(`/courses/${cl.id}`)}>
                     <div className="content">
-                      <div className="header" style={{ color: '#E84A27' }}>
+                      <div className="header" style={{ color: 'var(--accent-red)' }}>
                         {cl.subject?.code || cl.subject} {cl.number}
                       </div>
                     </div>

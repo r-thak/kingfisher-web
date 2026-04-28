@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { exploreSubjects, exploreCourses, exploreInstructors } from '../api';
 import Pagination from '../components/Pagination';
@@ -8,53 +8,82 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
+// Build a sorted list of subject entries for autocomplete
+const SUBJECT_ENTRIES = Object.entries(subjectMap).map(([code, name]) => ({ code, name }))
+  .sort((a, b) => a.code.localeCompare(b.code));
+
+function fuzzyFilterSubjects(input) {
+  if (!input) return [];
+  const q = input.toLowerCase().trim();
+  return SUBJECT_ENTRIES.filter(({ code, name }) =>
+    code.toLowerCase().includes(q) ||
+    name.toLowerCase().includes(q)
+  ).slice(0, 10);
+}
+
 const TABLE_STYLES = {
-  table: { 
-    width: '100%', 
-    borderCollapse: 'collapse', 
-    textAlign: 'left', 
-    fontSize: '14px', 
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    textAlign: 'left',
+    fontSize: '14px',
     fontFamily: 'Lato, "Helvetica Neue", Arial, Helvetica, sans-serif',
     border: '1px solid rgba(34,36,38,.15)',
     borderRadius: '0.28571429rem'
   },
-  th: { 
-    padding: '0.92857143em 0.78571429em', 
-    fontWeight: '700', 
-    color: 'var(--text-primary)', 
-    backgroundColor: 'var(--bg-secondary)', 
+  th: {
+    padding: '0.92857143em 0.78571429em',
+    fontWeight: '700',
+    color: 'var(--text-primary)',
+    backgroundColor: 'var(--bg-secondary)',
     borderBottom: '1px solid var(--border-color)',
     cursor: 'pointer',
     userSelect: 'none'
   },
-  td: { 
-    padding: '0.78571429em', 
+  td: {
+    padding: '0.78571429em',
     borderTop: '1px solid var(--border-color)',
     color: 'var(--text-primary)'
   },
-  tdRight: { 
-    padding: '0.78571429em', 
-    borderTop: '1px solid var(--border-color)', 
-    textAlign: 'right', 
+  tdRight: {
+    padding: '0.78571429em',
+    borderTop: '1px solid var(--border-color)',
+    textAlign: 'right',
     color: 'var(--text-primary)',
     fontVariantNumeric: 'tabular-nums'
   },
-  link: { 
-    textDecoration: 'none', 
+  link: {
+    textDecoration: 'none',
     color: 'var(--text-primary)'
   },
-  pill: { 
-    display: 'inline-block', 
-    padding: '0.2em 0.5em', 
-    background: 'rgba(0, 0, 0, 0.05)', 
-    borderRadius: '3px', 
-    fontSize: '11px', 
-    marginTop: '4px', 
-    color: 'var(--text-secondary)', 
+  pill: {
+    display: 'inline-block',
+    padding: '0.2em 0.5em',
+    background: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: '3px',
+    fontSize: '11px',
+    marginTop: '4px',
+    color: 'var(--text-secondary)',
     fontWeight: '700',
     textTransform: 'uppercase'
   }
 };
+
+// Sort option configs: { value, label, column, direction }
+const SORT_OPTIONS = [
+  { value: 'totalStudents-desc', label: 'Total Grades ↓', column: 'totalStudents', direction: 'desc' },
+  { value: 'totalStudents-asc',  label: 'Total Grades ↑', column: 'totalStudents', direction: 'asc' },
+  { value: 'avgStudents-desc',   label: 'Avg Grades ↓',   column: 'avgStudents',   direction: 'desc' },
+  { value: 'avgStudents-asc',    label: 'Avg Grades ↑',   column: 'avgStudents',   direction: 'asc' },
+  { value: 'gpa-desc',           label: 'Avg GPA ↓',      column: 'gpa',           direction: 'desc' },
+  { value: 'gpa-asc',            label: 'Avg GPA ↑',      column: 'gpa',           direction: 'asc' },
+];
+
+const SORT_SUBJECTS = [
+  { value: 'subjectCode-asc',    label: 'Subject Code A→Z', column: 'subjectCode', direction: 'asc' },
+  { value: 'subjectCode-desc',   label: 'Subject Code Z→A', column: 'subjectCode', direction: 'desc' },
+  ...SORT_OPTIONS,
+];
 
 function Explore() {
   const navigate = useNavigate();
@@ -71,17 +100,32 @@ function Explore() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
 
-  // For the filter dropdown
-  const [subjectsList, setSubjectsList] = useState([]);
+  // Subject autocomplete for courses/instructors filter
+  const [subjectInput, setSubjectInput] = useState(
+    filterSubject ? (subjectMap[filterSubject] ? `${filterSubject} — ${subjectMap[filterSubject]}` : filterSubject) : ''
+  );
+  const [subjectDropdownOpen, setSubjectDropdownOpen] = useState(false);
+  const subjectRef = useRef(null);
+  const subjectSuggestions = useMemo(() => fuzzyFilterSubjects(subjectInput), [subjectInput]);
 
   useEffect(() => {
-    // Load subjects for filter if needed
-    if (activeTab === 'courses' || activeTab === 'instructors') {
-       exploreSubjects({ perPage: 200, sort: 'subjectCode', order: 'asc' })
-         .then(res => setSubjectsList(res.results || []))
-         .catch(console.error);
+    const handler = (e) => {
+      if (subjectRef.current && !subjectRef.current.contains(e.target)) {
+        setSubjectDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // Sync subject input when URL changes externally
+  useEffect(() => {
+    if (filterSubject) {
+      setSubjectInput(subjectMap[filterSubject] ? `${filterSubject} — ${subjectMap[filterSubject]}` : filterSubject);
+    } else {
+      setSubjectInput('');
     }
-  }, [activeTab]);
+  }, [filterSubject]);
 
   useEffect(() => {
     setLoading(true);
@@ -107,26 +151,40 @@ function Explore() {
       .finally(() => setLoading(false));
   }, [activeTab, currentPage, sort, order, filterSubject]);
 
+  const buildUrl = (tab, page, col, dir, subj) =>
+    `/explore?tab=${tab}&page=${page}&sort=${col}&order=${dir}${subj ? `&subject=${subj}` : ''}`;
+
   const handleTabChange = (tab) => navigate(`/explore?tab=${tab}&page=1`);
-  const handlePageChange = (page) => navigate(`/explore?tab=${activeTab}&page=${page}&sort=${sort}&order=${order}${filterSubject ? `&subject=${filterSubject}` : ''}`);
-  
-  const handleSort = (column) => {
-    const newOrder = sort === column && order === 'desc' ? 'asc' : 'desc';
-    navigate(`/explore?tab=${activeTab}&page=1&sort=${column}&order=${newOrder}${filterSubject ? `&subject=${filterSubject}` : ''}`);
+  const handlePageChange = (page) => navigate(buildUrl(activeTab, page, sort, order, filterSubject));
+
+  const handleSortChange = (e) => {
+    const opt = (activeTab === 'subjects' ? SORT_SUBJECTS : SORT_OPTIONS).find(o => o.value === e.target.value);
+    if (opt) navigate(buildUrl(activeTab, 1, opt.column, opt.direction, filterSubject));
   };
 
-  const handleFilterChange = (e) => {
-    const newSubject = e.target.value;
-    navigate(`/explore?tab=${activeTab}&page=1&sort=${sort}&order=${order}${newSubject ? `&subject=${newSubject}` : ''}`);
+  const handleSubjectSelect = (code) => {
+    setSubjectInput(subjectMap[code] ? `${code} — ${subjectMap[code]}` : code);
+    setSubjectDropdownOpen(false);
+    navigate(buildUrl(activeTab, 1, sort, order, code));
   };
+
+  const handleSubjectClear = () => {
+    setSubjectInput('');
+    setSubjectDropdownOpen(false);
+    navigate(buildUrl(activeTab, 1, sort, order, ''));
+  };
+
+  const currentSortValue = `${sort}-${order}`;
+  const sortOptions = activeTab === 'subjects' ? SORT_SUBJECTS : SORT_OPTIONS;
 
   const renderTh = (label, column, isRight) => {
     const isSorted = sort === column;
+    const newOrder = isSorted && order === 'desc' ? 'asc' : 'desc';
     return (
-      <th 
-        onClick={() => handleSort(column)}
-        style={{ 
-          ...TABLE_STYLES.th, 
+      <th
+        onClick={() => navigate(buildUrl(activeTab, 1, column, newOrder, filterSubject))}
+        style={{
+          ...TABLE_STYLES.th,
           textAlign: isRight ? 'right' : 'left'
         }}
       >
@@ -248,19 +306,96 @@ function Explore() {
     }
   };
 
+  const inputStyle = {
+    padding: '0.5em 1em',
+    borderRadius: '2px',
+    border: '1px solid var(--border-color)',
+    backgroundColor: 'var(--bg-card)',
+    fontSize: '13px',
+    fontFamily: 'inherit',
+    color: 'var(--text-primary)',
+    outline: 'none'
+  };
+
   return (
     <div className="Explore" style={{ fontFamily: 'Lato, "Helvetica Neue", Arial, Helvetica, sans-serif' }}>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>
             Explore
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
-            {totalCount > 0 ? `${totalCount.toLocaleString()} results` : ''} · Sorted by {sort} {order}
+            {totalCount > 0 ? `${totalCount.toLocaleString()} results` : ''}
           </p>
         </div>
-        
 
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Subject filter – only for courses and instructors tabs */}
+          {(activeTab === 'courses' || activeTab === 'instructors') && (
+            <div ref={subjectRef} style={{ position: 'relative' }}>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="Filter by subject..."
+                  value={subjectInput}
+                  onChange={e => {
+                    setSubjectInput(e.target.value);
+                    setSubjectDropdownOpen(true);
+                  }}
+                  onFocus={() => setSubjectDropdownOpen(true)}
+                  style={{ ...inputStyle, width: '200px', paddingRight: filterSubject ? '2rem' : '1em' }}
+                />
+                {filterSubject && (
+                  <button
+                    onClick={handleSubjectClear}
+                    style={{
+                      position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px',
+                      color: 'var(--text-secondary)', lineHeight: 1, padding: '0'
+                    }}
+                    title="Clear subject filter"
+                  >✕</button>
+                )}
+              </div>
+              {subjectDropdownOpen && subjectSuggestions.length > 0 && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+                  background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+                  borderTop: 'none', borderRadius: '0 0 4px 4px',
+                  maxHeight: '220px', overflowY: 'auto',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.12)', minWidth: '240px'
+                }}>
+                  {subjectSuggestions.map(({ code, name }) => (
+                    <div
+                      key={code}
+                      onMouseDown={() => handleSubjectSelect(code)}
+                      style={{
+                        padding: '0.5em 1em', cursor: 'pointer', fontSize: '13px',
+                        color: 'var(--text-primary)', display: 'flex', gap: '0.5em', alignItems: 'baseline'
+                      }}
+                      onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+                      onMouseOut={e => e.currentTarget.style.backgroundColor = ''}
+                    >
+                      <span style={{ fontWeight: 700, color: '#983220', minWidth: '45px' }}>{code}</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Sort dropdown */}
+          <select
+            value={currentSortValue}
+            onChange={handleSortChange}
+            style={{ ...inputStyle, cursor: 'pointer' }}
+          >
+            {sortOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div style={{ display: 'flex', borderBottom: '2px solid rgba(34,36,38,.15)', marginBottom: '1.25rem', gap: '0' }}>

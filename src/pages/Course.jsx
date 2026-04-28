@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCourse, getCourseGrades } from '../api';
 import { useTheme } from '../context/ThemeContext';
@@ -20,6 +20,110 @@ const TABLE_STYLES = {
   td: { padding: '0.78571429em', borderTop: '1px solid var(--border-color)', color: 'var(--text-primary)' },
   tdRight: { padding: '0.78571429em', borderTop: '1px solid var(--border-color)', textAlign: 'right', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }
 };
+
+// Custom Dropdown Component
+function CustomDropdown({ options, value, onChange, placeholder, searchPlaceholder = "Search...", valueKey = "id", labelKey = "name" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selectedOption = options.find(o => o[valueKey] === value);
+  
+  // Filter options based on search, but ALWAYS keep the "placeholder/filter" option at the top if it matches or if search is empty
+  const filteredOptions = useMemo(() => {
+    if (!search) return options;
+    const q = search.toLowerCase();
+    // Keep the "0" ID option (Filter...) at the top always if it's there
+    const first = options.find(o => o[valueKey] === 0);
+    const rest = options.filter(o => o[valueKey] !== 0 && o[labelKey].toLowerCase().includes(q));
+    return first ? [first, ...rest] : rest;
+  }, [options, search, valueKey, labelKey]);
+
+  return (
+    <div ref={ref} style={{ flex: 1, position: 'relative', fontFamily: 'Lato, sans-serif' }}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          padding: '0.6em 1em',
+          borderRadius: '4px',
+          border: '1px solid var(--border-color)',
+          fontSize: '14px',
+          color: 'var(--text-primary)',
+          backgroundColor: 'var(--bg-card)',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          minHeight: '38px',
+          boxSizing: 'border-box'
+        }}
+      >
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {selectedOption ? selectedOption[labelKey] : placeholder}
+        </span>
+        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', marginLeft: '8px' }}>{isOpen ? '▲' : '▼'}</span>
+      </div>
+
+      {isOpen && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000,
+          background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+          marginTop: '4px', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          maxHeight: '300px', overflowY: 'auto'
+        }}>
+          <div style={{ padding: '8px', borderBottom: '1px solid var(--border-color)', position: 'sticky', top: 0, background: 'var(--bg-card)', zIndex: 1 }}>
+            <input 
+              autoFocus
+              type="text"
+              placeholder={searchPlaceholder}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{
+                width: '100%', padding: '6px 10px', borderRadius: '2px', border: '1px solid var(--border-color)',
+                fontSize: '13px', outline: 'none', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+          {filteredOptions.map((opt, idx) => (
+            <div 
+              key={opt[valueKey] || idx}
+              onClick={() => {
+                onChange(opt[valueKey]);
+                setIsOpen(false);
+                setSearch('');
+              }}
+              style={{
+                padding: '8px 12px', cursor: 'pointer', fontSize: '14px',
+                color: opt[valueKey] === value ? '#983220' : 'var(--text-primary)',
+                fontWeight: opt[valueKey] === value ? '700' : '400',
+                backgroundColor: opt[valueKey] === value ? 'var(--bg-secondary)' : 'transparent',
+                borderBottom: opt[valueKey] === 0 ? '1px solid var(--border-color)' : 'none'
+              }}
+              onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+              onMouseOut={e => {
+                if (opt[valueKey] !== value) e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              {opt[labelKey]}
+            </div>
+          ))}
+          {filteredOptions.length === 0 && (
+            <div style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>No matches found</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Course() {
   const { courseId } = useParams();
@@ -85,7 +189,9 @@ function Course() {
   
   const instructorOptions = useMemo(() => {
     const map = new Map();
+    // ALWAYS set ID 0 at the start
     map.set(0, { id: 0, name: 'Filter instructors...' });
+    
     courseOfferings.forEach(offering => {
       if (selectedTermId === 0 || offering.termId === selectedTermId) {
         offering.sections?.forEach(section => {
@@ -93,7 +199,12 @@ function Course() {
         });
       }
     });
-    return Array.from(map.values()).sort((a, b) => a.id === 0 ? -1 : a.name.localeCompare(b.name));
+
+    const list = Array.from(map.values());
+    const filterOption = list.find(o => o.id === 0);
+    const others = list.filter(o => o.id !== 0).sort((a, b) => a.name.localeCompare(b.name));
+    
+    return [filterOption, ...others];
   }, [courseOfferings, selectedTermId]);
 
   const termOptions = useMemo(() => {
@@ -197,21 +308,23 @@ function Course() {
         <div className="col col-16" style={{ width: '100%' }}>
           {grades && (
             <>
-              <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <select
-                  style={{ flex: 1, padding: '0.6em 1em', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '14px', fontFamily: 'inherit', color: 'var(--text-primary)', backgroundColor: 'var(--bg-card)', outline: 'none', cursor: 'pointer' }}
+              <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <CustomDropdown 
+                  options={instructorOptions}
                   value={selectedInstructorId}
-                  onChange={e => setSelectedInstructorId(Number(e.target.value))}
-                >
-                  {instructorOptions.map(inst => <option key={inst.id} value={inst.id}>{inst.name}</option>)}
-                </select>
-                <select
-                  style={{ flex: 1, padding: '0.6em 1em', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '14px', fontFamily: 'inherit', color: 'var(--text-primary)', backgroundColor: 'var(--bg-card)', outline: 'none', cursor: 'pointer' }}
+                  onChange={setSelectedInstructorId}
+                  placeholder="Filter instructors..."
+                  searchPlaceholder="Search instructors..."
+                />
+                <CustomDropdown 
+                  options={termOptions}
                   value={selectedTermId}
-                  onChange={e => setSelectedTermId(Number(e.target.value))}
-                >
-                  {termOptions.map(term => <option key={term.termId} value={term.termId}>{term.yearTerm}</option>)}
-                </select>
+                  onChange={setSelectedTermId}
+                  placeholder="Filter semesters..."
+                  searchPlaceholder="Search semesters..."
+                  valueKey="termId"
+                  labelKey="yearTerm"
+                />
               </div>
 
               <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
@@ -224,6 +337,7 @@ function Course() {
                   />
                 </div>
                 <div style={{ ...FLAT_CARD_STYLE, flex: '1 1 45%', minWidth: '400px', marginBottom: 0 }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '1.5rem', marginTop: 0 }}>GPA Trend</h2>
                   <GpaTrendChart 
                     courseOfferings={courseOfferings} 
                     selectedInstructorId={selectedInstructorId}
@@ -233,7 +347,7 @@ function Course() {
               </div>
               
               <div style={FLAT_CARD_STYLE}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
                   <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Instructors</h2>
                   <input 
                     type="text" 

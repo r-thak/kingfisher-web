@@ -3,8 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import SearchBox from './SearchBox';
 
-const COMMIT_HASH = '050e8f8cb43391cede5f50c301a5a17a76ad112b';
-const COMMIT_SHORT = '050e8f8';
+const COMMIT_HASH = typeof __COMMIT_HASH__ !== 'undefined' ? __COMMIT_HASH__ : 'dev';
+const COMMIT_SHORT = typeof __COMMIT_SHORT__ !== 'undefined' ? __COMMIT_SHORT__ : 'dev';
 const API_URL = 'https://github.com/r-thak/kingfisher-api';
 const WEB_REPO_URL = 'https://github.com/r-thak/kingfisher-web';
 

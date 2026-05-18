@@ -11,7 +11,15 @@ export function ThemeProvider({ children }) {
   }, [theme]);
 
   const toggleTheme = () => {
+    document.documentElement.classList.add('no-transitions');
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+    
+    // Force a layout reflow to make sure style changes are applied instantly without transition
+    window.getComputedStyle(document.documentElement).opacity;
+    
+    setTimeout(() => {
+      document.documentElement.classList.remove('no-transitions');
+    }, 50);
   };
 
   return (

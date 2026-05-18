@@ -97,6 +97,7 @@ function Explore() {
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -129,6 +130,7 @@ function Explore() {
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     setData([]);
 
     const params = { page: currentPage, perPage: 25, sort, order };
@@ -147,7 +149,10 @@ function Explore() {
         setTotalPages(res.totalPages || 1);
         setTotalCount(res.totalCount || 0);
       })
-      .catch(console.error)
+      .catch(err => {
+        console.error(err);
+        setError('The server is currently unreachable. Please ensure the backend API is running.');
+      })
       .finally(() => setLoading(false));
   }, [activeTab, currentPage, sort, order, filterSubject]);
 
@@ -203,6 +208,15 @@ function Explore() {
       return (
         <div style={{ padding: '4rem', textAlign: 'center' }}>
           <div className="loader"></div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#721c24', backgroundColor: '#f8d7da', border: '1px solid #f5c6cb', borderRadius: '4px' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0' }}>API Error</h3>
+          <p style={{ margin: 0 }}>{error}</p>
         </div>
       );
     }

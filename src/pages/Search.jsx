@@ -41,6 +41,7 @@ function Search() {
 
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
   const navigate = useNavigate();
 
@@ -110,6 +111,7 @@ function Search() {
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     let params = {};
     if (searchString) params.query = searchString;
     if (subjectStr) params.subject = subjectStr;
@@ -125,7 +127,10 @@ function Search() {
         setResults(items);
         setTotalCount(data.totalCount || items.length);
       })
-      .catch(console.error)
+      .catch(err => {
+        console.error(err);
+        setError('The server is currently unreachable. Please ensure the backend API is running.');
+      })
       .finally(() => setLoading(false));
   }, [searchString, subjectStr, instructorStr, sortStr, orderStr]);
 
@@ -138,7 +143,7 @@ function Search() {
     navigate(`/search?sort=${newSort}&order=${newOrder}${q}${subj}${inst}`);
   };
 
-  const currentSortValue = sortStr ? `${sortStr}-${orderStr}` : 'popularity-desc';
+  const currentSortValue = sortStr ? `${sortStr}-${orderStr}` : (searchString ? 'match-desc' : 'popularity-desc');
 
   const inputStyle = {
     flex: 1,
@@ -243,6 +248,7 @@ function Search() {
             cursor: 'pointer'
           }}
         >
+          <option value="match-desc">Closest Match</option>
           <option value="popularity-desc">Popularity ↓</option>
           <option value="popularity-asc">Popularity ↑</option>
           <option value="gpa-desc">GPA ↓</option>
@@ -261,6 +267,11 @@ function Search() {
           <div style={{ padding: '3rem', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: '2px' }}>
             <div className="loader"></div>
             <p style={{ marginTop: '1rem', color: 'var(--text-primary)' }}>Searching Courses...</p>
+          </div>
+        ) : error ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: '#721c24', backgroundColor: '#f8d7da', border: '1px solid #f5c6cb', borderRadius: '4px' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0' }}>API Error</h3>
+            <p style={{ margin: 0 }}>{error}</p>
           </div>
         ) : results.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', borderRadius: '2px' }}>

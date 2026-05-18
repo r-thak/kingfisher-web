@@ -133,6 +133,7 @@ function Course() {
   const [course, setCourse] = useState(null);
   const [grades, setGrades] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [instructors, setInstructors] = useState([]);
   const [sortCol, setSortCol] = useState('totalStudents');
@@ -145,6 +146,7 @@ function Course() {
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     Promise.all([
       getCourse(courseId),
       getCourseGrades(courseId)
@@ -180,7 +182,10 @@ function Course() {
         setInstructors(list);
       }
     })
-    .catch(console.error)
+    .catch(err => {
+      console.error(err);
+      setError('The server is currently unreachable. Please ensure the backend API is running.');
+    })
     .finally(() => setLoading(false));
   }, [courseId]);
 
@@ -239,6 +244,18 @@ function Course() {
         <div className="ui segment" style={{ padding: '4rem', textAlign: 'center' }}>
           <div className="ui active centered inline loader large"></div>
           <p style={{ marginTop: '1rem' }}>Loading Course Data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="Course">
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#721c24', backgroundColor: '#f8d7da', border: '1px solid #f5c6cb', borderRadius: '4px', fontFamily: 'Lato, sans-serif' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0' }}>API Error</h3>
+          <p style={{ margin: 0 }}>{error}</p>
+          <button className="ui secondary button" style={{ marginTop: '1rem', cursor: 'pointer', padding: '0.5em 1em', border: '1px solid #721c24', background: '#721c24', color: '#fff', borderRadius: '4px' }} onClick={() => navigate(-1)}>Go Back</button>
         </div>
       </div>
     );

@@ -18,14 +18,12 @@ function Home() {
         <h1 className="huge-header" style={{ fontSize: '3.5rem' }}>
           Kingfisher
           <div className="sub-header" style={{ marginTop: '0.75rem', fontSize: '1.25rem' }}>
-            University of Illinois at Urbana-Champaign grade distribution visualizer.
+            Grade distribution visualization tool for University of Illinois Urbana-Champaign
           </div>
         </h1>
 
         <p style={{ fontSize: '1.25rem', lineHeight: '1.6', maxWidth: '750px', margin: '1.5rem 0 2.5rem' }}>
-          Find grade distributions for UIUC courses. Easily compare cumulative course grade
-          distributions to particular instructors or semesters to get insight into a course
-          which you are interested in taking.
+          Find grade distributions for UIUC courses, including past semesters and instructors.
         </p>
 
         <div style={{ width: '100%', maxWidth: '600px' }}>

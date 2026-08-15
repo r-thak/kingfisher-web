@@ -27,6 +27,8 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+
+
   },
   build: {
     cssMinify: 'esbuild'

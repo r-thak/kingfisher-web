@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { getCourses } from '../api';
+import { getCourses, getTerms, getInstructors } from '../api';
 import subjectMap from '../utils/subjectMap';
+import { SECTION_DETAIL_TAGS } from '../utils/sectionDetails';
+
+const SEASON_ORDER = { spring: 1, summer: 2, fall: 3, winter: 4 };
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -18,17 +21,52 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-// Build a sorted list of subject entries for the autocomplete
+function levenshtein(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
 const SUBJECT_ENTRIES = Object.entries(subjectMap).map(([code, name]) => ({ code, name }))
   .sort((a, b) => a.code.localeCompare(b.code));
 
 function fuzzyFilterSubjects(input) {
   if (!input) return [];
   const q = input.toLowerCase().trim();
-  return SUBJECT_ENTRIES.filter(({ code, name }) =>
-    code.toLowerCase().includes(q) ||
-    name.toLowerCase().includes(q)
-  ).slice(0, 10);
+  if (q.length === 0) return [];
+
+  // Exact or substring matches first
+  const directMatches = SUBJECT_ENTRIES.filter(({ code, name }) =>
+    code.toLowerCase().includes(q) || name.toLowerCase().includes(q)
+  );
+  if (directMatches.length > 0) {
+    return directMatches.slice(0, 10);
+  }
+
+  // Off-by-one / typo tolerance (distance <= 1 on code or prefix of name)
+  return SUBJECT_ENTRIES.filter(({ code, name }) => {
+    const codeLower = code.toLowerCase();
+    const nameLower = name.toLowerCase();
+    if (Math.abs(codeLower.length - q.length) <= 1 && levenshtein(codeLower, q) <= 1) return true;
+    const namePrefix = nameLower.slice(0, Math.min(nameLower.length, q.length + 1));
+    return levenshtein(namePrefix, q) <= 1;
+  }).slice(0, 10);
 }
 
 function Search() {
@@ -38,11 +76,21 @@ function Search() {
   const instructorStr = queryParams.get('instructor') || '';
   const sortStr = queryParams.get('sort') || '';
   const orderStr = queryParams.get('order') || 'desc';
+  const termStr = queryParams.get('term') || '';
+  const cohortStr = queryParams.get('cohort') || '';
+  const filterModeStr = queryParams.get('filterMode') || 'and';
+
+  const selectedCohorts = useMemo(
+    () => cohortStr ? cohortStr.split(',').filter(Boolean) : [],
+    [cohortStr]
+  );
 
   const [results, setResults] = useState([]);
+  const [availableCohorts, setAvailableCohorts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
+  const [terms, setTerms] = useState([]);
   const navigate = useNavigate();
 
   // Subject autocomplete state
@@ -52,63 +100,173 @@ function Search() {
   const [subjectDropdownOpen, setSubjectDropdownOpen] = useState(false);
   const subjectRef = useRef(null);
 
-  // Instructor filter state
-  const [localInstructor, setLocalInstructor] = useState(instructorStr);
-  const debouncedInstructor = useDebounce(localInstructor, 400);
+  // Instructor autocomplete state
+  const [instructorInput, setInstructorInput] = useState(instructorStr);
+  const [instructorSuggestions, setInstructorSuggestions] = useState([]);
+  const [instructorDropdownOpen, setInstructorDropdownOpen] = useState(false);
+  const instructorRef = useRef(null);
+
+  const debouncedInstructorInput = useDebounce(instructorInput, 250);
 
   const subjectSuggestions = useMemo(() => fuzzyFilterSubjects(subjectInput), [subjectInput]);
 
-  // Close dropdown on outside click
+  const buildSearchUrl = (overrides = {}) => {
+    const state = {
+      q: searchString,
+      subject: subjectStr,
+      instructor: instructorStr,
+      sort: sortStr,
+      order: orderStr,
+      term: termStr,
+      cohort: cohortStr,
+      filterMode: filterModeStr,
+      ...overrides
+    };
+    const params = new URLSearchParams();
+    if (state.q) params.set('q', state.q);
+    if (state.subject) params.set('subject', state.subject);
+    if (state.instructor) params.set('instructor', state.instructor);
+    if (state.term) params.set('term', state.term);
+    if (state.cohort) params.set('cohort', state.cohort);
+    if (state.filterMode && state.filterMode !== 'and') params.set('filterMode', state.filterMode);
+    if (state.sort) {
+      params.set('sort', state.sort);
+      params.set('order', state.order || 'desc');
+    }
+    return `/search?${params.toString()}`;
+  };
+
+  // Load available terms once and set dynamic default term
+  useEffect(() => {
+    getTerms()
+      .then(data => {
+        setTerms(data || []);
+        if (data && data.length > 0 && !termStr) {
+          const def = data.find(t => t.isDefault) || data[0];
+          navigate(buildSearchUrl({ term: def.yearTerm }), { replace: true });
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch instructor suggestions as user types
+  useEffect(() => {
+    const q = debouncedInstructorInput.trim();
+    if (q.length >= 2) {
+      getInstructors({ query: q, perPage: 8 })
+        .then(res => {
+          const list = res.results || [];
+          setInstructorSuggestions(list);
+          if (list.length > 0 && document.activeElement === instructorRef.current?.querySelector('input')) {
+            setInstructorDropdownOpen(true);
+          }
+        })
+        .catch(() => setInstructorSuggestions([]));
+    } else {
+      setInstructorSuggestions([]);
+      setInstructorDropdownOpen(false);
+    }
+  }, [debouncedInstructorInput]);
+
+  // Close dropdowns on click outside
   useEffect(() => {
     const handler = (e) => {
       if (subjectRef.current && !subjectRef.current.contains(e.target)) {
         setSubjectDropdownOpen(false);
+      }
+      if (instructorRef.current && !instructorRef.current.contains(e.target)) {
+        setInstructorDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Sync subject input when URL changes externally
+  // Sync inputs when URL changes externally
   useEffect(() => {
     if (subjectStr) {
       setSubjectInput(subjectMap[subjectStr] ? `${subjectStr} — ${subjectMap[subjectStr]}` : subjectStr);
     } else {
       setSubjectInput('');
     }
-    setLocalInstructor(instructorStr);
+    setInstructorInput(instructorStr);
   }, [subjectStr, instructorStr]);
-
-  // Update URL when debounced instructor changes
-  useEffect(() => {
-    const isInstructorValid = debouncedInstructor.length === 0 || debouncedInstructor.length >= 3;
-    if (isInstructorValid && debouncedInstructor !== instructorStr) {
-      const q = searchString ? `&q=${encodeURIComponent(searchString)}` : '';
-      const sortParams = sortStr ? `&sort=${sortStr}&order=${orderStr}` : '';
-      const subjParams = subjectStr ? `&subject=${encodeURIComponent(subjectStr)}` : '';
-      const instParams = debouncedInstructor ? `&instructor=${encodeURIComponent(debouncedInstructor)}` : '';
-      navigate(`/search?${q}${subjParams}${instParams}${sortParams}`);
-    }
-  }, [debouncedInstructor, instructorStr, searchString, sortStr, orderStr, subjectStr, navigate]);
 
   const handleSubjectSelect = (code) => {
     setSubjectInput(subjectMap[code] ? `${code} — ${subjectMap[code]}` : code);
     setSubjectDropdownOpen(false);
-    const q = searchString ? `&q=${encodeURIComponent(searchString)}` : '';
-    const sortParams = sortStr ? `&sort=${sortStr}&order=${orderStr}` : '';
-    const instParams = localInstructor ? `&instructor=${encodeURIComponent(localInstructor)}` : '';
-    navigate(`/search?subject=${encodeURIComponent(code)}${q}${instParams}${sortParams}`);
+    navigate(buildSearchUrl({ subject: code }));
   };
 
   const handleSubjectClear = () => {
     setSubjectInput('');
     setSubjectDropdownOpen(false);
-    const q = searchString ? `&q=${encodeURIComponent(searchString)}` : '';
-    const sortParams = sortStr ? `&sort=${sortStr}&order=${orderStr}` : '';
-    const instParams = localInstructor ? `&instructor=${encodeURIComponent(localInstructor)}` : '';
-    navigate(`/search?${q}${instParams}${sortParams}`);
+    navigate(buildSearchUrl({ subject: '' }));
   };
 
+  const handleInstructorSelect = (name) => {
+    setInstructorInput(name);
+    setInstructorDropdownOpen(false);
+    navigate(buildSearchUrl({ instructor: name }));
+  };
+
+  const handleInstructorClear = () => {
+    setInstructorInput('');
+    setInstructorDropdownOpen(false);
+    navigate(buildSearchUrl({ instructor: '' }));
+  };
+
+  const getCohortState = (id) => {
+    if (selectedCohorts.includes(`!${id}`)) return 'exclude';
+    if (selectedCohorts.includes(id)) return 'include';
+    return 'none';
+  };
+
+  const handleToggleInclude = (id) => {
+    const currentState = getCohortState(id);
+    let next;
+    if (currentState === 'include') {
+      next = selectedCohorts.filter(c => c !== id && c !== `!${id}`);
+    } else {
+      next = [...selectedCohorts.filter(c => c !== id && c !== `!${id}`), id];
+    }
+    navigate(buildSearchUrl({ cohort: next.join(',') }));
+  };
+
+  const handleToggleExclude = (id) => {
+    const currentState = getCohortState(id);
+    let next;
+    if (currentState === 'exclude') {
+      next = selectedCohorts.filter(c => c !== id && c !== `!${id}`);
+    } else {
+      next = [...selectedCohorts.filter(c => c !== id && c !== `!${id}`), `!${id}`];
+    }
+    navigate(buildSearchUrl({ cohort: next.join(',') }));
+  };
+
+  const toggleFilterMode = () => {
+    const nextMode = filterModeStr === 'or' ? 'and' : 'or';
+    navigate(buildSearchUrl({ filterMode: nextMode }));
+  };
+
+  const handleTermChange = (e) => {
+    navigate(buildSearchUrl({ term: e.target.value }));
+  };
+
+  const clearAllFilters = () => {
+    navigate(buildSearchUrl({
+      subject: '',
+      instructor: '',
+      term: '',
+      cohort: '',
+      filterMode: 'and'
+    }));
+    setSubjectInput('');
+    setInstructorInput('');
+  };
+
+  // Perform search
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -116,6 +274,9 @@ function Search() {
     if (searchString) params.query = searchString;
     if (subjectStr) params.subject = subjectStr;
     if (instructorStr) params.instructor = instructorStr;
+    if (termStr && termStr !== 'all') params.term = termStr;
+    if (selectedCohorts.length > 0) params.cohort = selectedCohorts.join(',');
+    if (filterModeStr) params.filterMode = filterModeStr;
     if (sortStr) {
       params.sort = sortStr;
       params.order = orderStr;
@@ -126,29 +287,47 @@ function Search() {
         const items = data.results || [];
         setResults(items);
         setTotalCount(data.totalCount || items.length);
+        setAvailableCohorts(data.availableCohorts || []);
       })
       .catch(err => {
         console.error(err);
         setError('The server is currently unreachable. Please ensure the backend API is running.');
       })
       .finally(() => setLoading(false));
-  }, [searchString, subjectStr, instructorStr, sortStr, orderStr]);
+  }, [searchString, subjectStr, instructorStr, sortStr, orderStr, termStr, selectedCohorts, filterModeStr]);
 
   const handleSortChange = (e) => {
-    const val = e.target.value;
-    const q = searchString ? `&q=${encodeURIComponent(searchString)}` : '';
-    const subj = subjectStr ? `&subject=${encodeURIComponent(subjectStr)}` : '';
-    const inst = instructorStr ? `&instructor=${encodeURIComponent(instructorStr)}` : '';
-    const [newSort, newOrder] = val.split('-');
-    navigate(`/search?sort=${newSort}&order=${newOrder}${q}${subj}${inst}`);
+    const [newSort, newOrder] = e.target.value.split('-');
+    navigate(buildSearchUrl({ sort: newSort, order: newOrder }));
   };
 
   const currentSortValue = sortStr ? `${sortStr}-${orderStr}` : (searchString ? 'match-desc' : 'popularity-desc');
 
+  const termOptions = useMemo(() => {
+    const sorted = [...terms].sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      return (SEASON_ORDER[b.season?.toLowerCase()] || 0) - (SEASON_ORDER[a.season?.toLowerCase()] || 0);
+    });
+    return sorted;
+  }, [terms]);
+
+  // Contextual filtering: hide non-relevant pills from search view
+  const availableSearchTags = useMemo(() => {
+    const activeBaseIds = new Set(selectedCohorts.map(c => c.replace(/^!/, '')));
+    if (availableCohorts.length === 0 && results.length === 0) {
+      return SECTION_DETAIL_TAGS.filter(t => activeBaseIds.has(t.id));
+    }
+    if (availableCohorts.length > 0) {
+      const availSet = new Set(availableCohorts);
+      return SECTION_DETAIL_TAGS.filter(tag => availSet.has(tag.id) || activeBaseIds.has(tag.id));
+    }
+    return SECTION_DETAIL_TAGS;
+  }, [availableCohorts, selectedCohorts, results.length]);
+
   const inputStyle = {
     flex: 1,
     padding: '0.6em 1em',
-    borderRadius: '2px',
+    borderRadius: '4px',
     border: '1px solid var(--border-color)',
     backgroundColor: 'var(--bg-card)',
     fontSize: '14px',
@@ -157,24 +336,82 @@ function Search() {
     outline: 'none'
   };
 
+  const hasAnyFilter = Boolean(subjectStr || instructorStr || termStr || cohortStr);
+
   return (
     <div className="Search">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 className="large-header" style={{ margin: 0 }}>
           Search Results
           <div className="sub-header">
             Showing {totalCount} courses for: <strong>{searchString || subjectStr || instructorStr || 'All'}</strong>
           </div>
         </h1>
+
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Semester / Term Selector */}
+          <select
+            value={termStr || 'all'}
+            onChange={handleTermChange}
+            style={{
+              padding: '0.45em 0.85em',
+              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              backgroundColor: 'var(--bg-card)',
+              fontSize: '13px',
+              fontFamily: 'inherit',
+              color: 'var(--text-primary)',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="all">All Semesters</option>
+            {termOptions.map(t => (
+              <option key={t.yearTerm} value={t.yearTerm}>
+                {t.season ? `${t.season} ${t.year}` : t.yearTerm} {t.isDefault ? '(Latest)' : ''}
+              </option>
+            ))}
+          </select>
+
+          {/* Sort Selector */}
+          <select
+            value={currentSortValue}
+            onChange={handleSortChange}
+            style={{
+              padding: '0.45em 0.85em',
+              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              backgroundColor: 'var(--bg-card)',
+              fontSize: '13px',
+              fontFamily: 'inherit',
+              color: 'var(--text-primary)',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="match-desc">Closest Match</option>
+            <option value="popularity-desc">Popularity ↓</option>
+            <option value="popularity-asc">Popularity ↑</option>
+            <option value="gpa-desc">GPA ↓</option>
+            <option value="gpa-asc">GPA ↑</option>
+            <option value="total_grades-desc">Total Grades ↓</option>
+            <option value="total_grades-asc">Total Grades ↑</option>
+            <option value="name-asc">Course Name A→Z</option>
+            <option value="name-desc">Course Name Z→A</option>
+            <option value="number-asc">Course # Low→High</option>
+            <option value="number-desc">Course # High→Low</option>
+          </select>
+        </div>
       </div>
 
+      {/* Primary search filters (Subject & Instructor with Autocomplete) */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', fontFamily: 'Lato, "Helvetica Neue", Arial, Helvetica, sans-serif', flexWrap: 'wrap' }}>
         {/* Subject autocomplete */}
-        <div ref={subjectRef} style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
+        <div ref={subjectRef} style={{ flex: 1, minWidth: '220px', position: 'relative' }}>
           <div style={{ position: 'relative' }}>
             <input
               type="text"
-              placeholder="Filter by subject..."
+              placeholder="Filter by subject (e.g. CS, MATH, ECE)..."
               value={subjectInput}
               onChange={e => {
                 setSubjectInput(e.target.value);
@@ -222,49 +459,210 @@ function Search() {
           )}
         </div>
 
-        {/* Instructor filter */}
-        <input
-          type="text"
-          placeholder="Filter by instructor..."
-          value={localInstructor}
-          onChange={e => setLocalInstructor(e.target.value)}
-          style={{ ...inputStyle, flex: 1, minWidth: '200px' }}
-        />
+        {/* Instructor autocomplete */}
+        <div ref={instructorRef} style={{ flex: 1, minWidth: '220px', position: 'relative' }}>
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              placeholder="Filter by instructor (e.g. Erickson, Fleck)..."
+              value={instructorInput}
+              onChange={e => {
+                setInstructorInput(e.target.value);
+                setInstructorDropdownOpen(true);
+              }}
+              onFocus={() => {
+                if (instructorSuggestions.length > 0) setInstructorDropdownOpen(true);
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  setInstructorDropdownOpen(false);
+                  navigate(buildSearchUrl({ instructor: instructorInput.trim() }));
+                }
+              }}
+              style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', paddingRight: instructorStr ? '2rem' : '1em' }}
+            />
+            {instructorStr && (
+              <button
+                onClick={handleInstructorClear}
+                style={{
+                  position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px',
+                  color: 'var(--text-secondary)', lineHeight: 1, padding: '0'
+                }}
+                title="Clear instructor filter"
+              >✕</button>
+            )}
+          </div>
+          {instructorDropdownOpen && instructorSuggestions.length > 0 && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+              background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+              borderTop: 'none', borderRadius: '0 0 4px 4px',
+              maxHeight: '220px', overflowY: 'auto',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
+            }}>
+              {instructorSuggestions.map(inst => (
+                <div
+                  key={inst.id}
+                  onMouseDown={() => handleInstructorSelect(inst.name)}
+                  style={{
+                    padding: '0.5em 1em', cursor: 'pointer', fontSize: '13px',
+                    color: 'var(--text-primary)'
+                  }}
+                  onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+                  onMouseOut={e => e.currentTarget.style.backgroundColor = ''}
+                >
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{inst.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-        <select
-          value={currentSortValue}
-          onChange={handleSortChange}
-          style={{
-            padding: '0.4em 0.8em',
-            borderRadius: '2px',
-            border: '1px solid var(--border-color)',
-            backgroundColor: 'var(--bg-card)',
-            fontSize: '13px',
-            fontFamily: 'inherit',
-            color: 'var(--text-primary)',
-            outline: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="match-desc">Closest Match</option>
-          <option value="popularity-desc">Popularity ↓</option>
-          <option value="popularity-asc">Popularity ↑</option>
-          <option value="gpa-desc">GPA ↓</option>
-          <option value="gpa-asc">GPA ↑</option>
-          <option value="total_grades-desc">Total Grades ↓</option>
-          <option value="total_grades-asc">Total Grades ↑</option>
-          <option value="name-asc">Course Name A→Z</option>
-          <option value="name-desc">Course Name Z→A</option>
-          <option value="number-asc">Course # Low→High</option>
-          <option value="number-desc">Course # High→Low</option>
-        </select>
-      </div>
+      {/* Cohorts & Details Filter Pills (Unified Blue Highlight + Thinner '!' NOT button) */}
+      {availableSearchTags.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem', fontFamily: 'Lato, "Helvetica Neue", Arial, Helvetica, sans-serif' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', marginRight: '0.25em' }}>
+              Cohorts &amp; Details:
+            </span>
+            {availableSearchTags.map(tag => {
+              const state = getCohortState(tag.id);
+              const isIncluded = state === 'include';
+              const isExcluded = state === 'exclude';
 
+              let bg = 'var(--bg-secondary)';
+              let border = 'var(--border-color)';
+              let textColor = 'var(--text-secondary)';
+              let notBtnBg = 'var(--bg-card)'; // Same color as website/card background so not filled in
+              let notBtnBorder = '1px solid var(--border-color)';
+              let notBtnColor = 'var(--text-secondary)';
+
+              if (isIncluded) {
+                bg = '#2563eb'; // Blue highlight
+                border = '#2563eb';
+                textColor = '#ffffff';
+                notBtnBg = 'var(--bg-card)'; // Website background so it doesn't look filled in
+                notBtnBorder = '1px solid rgba(255, 255, 255, 0.4)';
+                notBtnColor = '#2563eb';
+              } else if (isExcluded) {
+                bg = 'rgba(220, 38, 38, 0.08)';
+                border = '#dc2626';
+                textColor = '#dc2626';
+                notBtnBg = '#dc2626'; // When it's filled in, it should be red
+                notBtnBorder = '1px solid #dc2626';
+                notBtnColor = '#ffffff';
+              }
+
+              return (
+                <span
+                  key={tag.id}
+                  onClick={() => handleToggleInclude(tag.id)}
+                  title={isExcluded ? `NOT ${tag.label} (excluded) - click label to include` : isIncluded ? `${tag.label} (included) - click label to remove` : `Click to include ${tag.label}`}
+                  style={{
+                    padding: '0.2em 0.7em 0.2em 0.35em',
+                    borderRadius: '999px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    border: `1px solid ${border}`,
+                    backgroundColor: bg,
+                    color: textColor,
+                    userSelect: 'none',
+                    transition: 'all 0.15s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem'
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleExclude(tag.id);
+                    }}
+                    title={isExcluded ? `Remove NOT filter for ${tag.label}` : `Exclude (NOT ${tag.label})`}
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      border: notBtnBorder,
+                      backgroundColor: notBtnBg,
+                      color: notBtnColor,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: '400', // Thinner '!'
+                      cursor: 'pointer',
+                      padding: 0,
+                      lineHeight: 1,
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    !
+                  </button>
+                  <span style={{ textDecoration: isExcluded ? 'line-through' : 'none' }}>
+                    {isExcluded ? `NOT ${tag.label}` : tag.label}
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+
+          {/* Filter Summary & AND/OR Logic Toggle */}
+          {hasAnyFilter && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', userSelect: 'text' }}>
+                Active filters combined with{' '}
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={toggleFilterMode}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleFilterMode(); }}
+                  title={`Click to switch to ${filterModeStr === 'or' ? 'AND' : 'OR'} logic`}
+                  style={{
+                    color: '#2563eb',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '2px',
+                    userSelect: 'text'
+                  }}
+                >
+                  {filterModeStr.toUpperCase()}
+                </span>{' '}
+                logic. (Click to switch)
+              </span>
+
+              <button
+                onClick={clearAllFilters}
+                style={{
+                  padding: '0.25em 0.6em',
+                  borderRadius: '4px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'transparent',
+                  color: '#2563eb',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
+
+
+        </div>
+      )}
+
+
+      {/* Results List */}
       <div style={{ fontFamily: 'Lato, "Helvetica Neue", Arial, Helvetica, sans-serif' }}>
         {loading ? (
-          <div style={{ padding: '3rem', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: '2px' }}>
+          <div style={{ padding: '3rem', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
             <div className="loader"></div>
             <p style={{ marginTop: '1rem', color: 'var(--text-primary)' }}>Searching Courses...</p>
           </div>
@@ -274,12 +672,12 @@ function Search() {
             <p style={{ margin: 0 }}>{error}</p>
           </div>
         ) : results.length === 0 ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', borderRadius: '2px' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
             <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>No results found</h3>
-            <p>Try searching for a course number like &ldquo;225&rdquo; or a title like &ldquo;Algorithms&rdquo;.</p>
+            <p>Try adjusting your search criteria or clearing some filter pills.</p>
           </div>
         ) : (
-          <div style={{ border: '1px solid var(--border-color)', borderRadius: '2px', overflow: 'hidden' }}>
+          <div style={{ border: '1px solid var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {results.map((course, idx) => (
                 <Link key={course.id} to={`/courses/${course.id}`}
@@ -298,7 +696,7 @@ function Search() {
                     <span style={{ fontSize: '1.15rem', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px' }}>
                       {course.title || course.name}
                     </span>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{
                         display: 'inline-block',
                         padding: '0.2em 0.5em',

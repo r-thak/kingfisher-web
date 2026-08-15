@@ -4,6 +4,7 @@ import { getCourse, getCourseGrades } from '../api';
 import { useTheme } from '../context/ThemeContext';
 import GpaTrendChart from '../components/GpaTrendChart';
 import CourseChartViewer from '../components/CourseChartViewer';
+import CourseDescription from '../components/CourseDescription';
 
 const FLAT_CARD_STYLE = {
   padding: '1.5rem',
@@ -417,7 +418,7 @@ function Course() {
           <div style={FLAT_CARD_STYLE}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '1rem', marginTop: 0 }}>Course Description</h2>
             <p style={{ fontSize: '14px', lineHeight: '1.5', color: 'var(--text-primary)', margin: 0 }}>
-              {course.description || 'No description available for this course.'}
+              <CourseDescription description={course.description} />
             </p>
           </div>
         </div>

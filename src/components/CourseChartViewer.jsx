@@ -101,7 +101,12 @@ function CourseChartViewer({ gradesData, selectedTermId, selectedInstructorId })
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
       formatter: (params) => {
-        return params.map(p => `${p.seriesName}: ${p.value}%`).join('<br/>');
+        const gradeLabel = params[0]?.axisValueLabel ?? params[0]?.name ?? '';
+        if (params.length > 1) {
+          const lines = params.map(p => `${p.seriesName}: ${p.value}%`);
+          return [`<strong>${gradeLabel}</strong>`, ...lines].join('<br/>');
+        }
+        return `${gradeLabel}: ${params[0]?.value}%`;
       }
     },
     legend: isFiltered ? {

@@ -1,3 +1,19 @@
 .Course {
   margin-top: 20px;
 }
+
+.course-desc-link {
+  color: var(--text-primary);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--text-muted);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+  cursor: pointer;
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    text-decoration-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+}

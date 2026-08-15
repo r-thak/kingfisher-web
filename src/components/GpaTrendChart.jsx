@@ -109,8 +109,11 @@ function GpaTrendChart({ courseOfferings, selectedInstructorId }) {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
-      formatter: (params) =>
-        params.map(p => `${p.seriesName}: ${p.value !== null ? p.value : 'N/A'}`).join('<br/>')
+      formatter: (params) => {
+        const semester = params[0]?.axisValueLabel ?? params[0]?.name ?? '';
+        const lines = params.map(p => `${p.seriesName}: ${p.value !== null ? p.value : 'N/A'}`);
+        return [`<strong>${semester}</strong>`, ...lines].join('<br/>');
+      }
     },
     legend: isFiltered ? {
       data: ['Course Overall', 'Instructor'],

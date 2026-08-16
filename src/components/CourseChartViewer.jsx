@@ -76,14 +76,14 @@ function CourseChartViewer({ gradesData, selectedTermId, selectedInstructorId })
       name: 'Course Overall',
       type: 'bar',
       data: cumulativeGrades ? toPercent(cumulativeGrades) : [],
-      itemStyle: { color: 'rgba(152,50,32,0.25)', borderColor: 'rgba(152,50,32,0.5)', borderWidth: 1 },
+      itemStyle: { color: 'rgba(233,75,38,0.25)', borderColor: 'rgba(233,75,38,0.5)', borderWidth: 1 },
       barGap: '0%',
     });
     series.push({
       name: 'Selection',
       type: 'bar',
       data: toPercent(filteredGrades),
-      itemStyle: { color: '#983220' },
+      itemStyle: { color: '#e94b26' },
       barGap: '0%',
     });
   } else {
@@ -91,7 +91,7 @@ function CourseChartViewer({ gradesData, selectedTermId, selectedInstructorId })
       name: 'Count',
       type: 'bar',
       data: cumulativeGrades ? toPercent(cumulativeGrades) : [],
-      itemStyle: { color: '#983220' },
+      itemStyle: { color: '#e94b26' },
     });
   }
 
@@ -149,7 +149,7 @@ function CourseChartViewer({ gradesData, selectedTermId, selectedInstructorId })
         <div style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.95rem', fontFamily: 'Lato, "Helvetica Neue", Arial, Helvetica, sans-serif' }}>
           <span>Total Grades: <strong style={{ color: 'var(--text-primary)' }}>{displayGrades.total?.toLocaleString()}</strong></span>
           <span style={{ margin: '0 1rem' }}>|</span>
-          <span>Average GPA: <strong style={{ color: '#983220' }}>{displayGrades.gpa?.toFixed(2) || 'N/A'}</strong></span>
+          <span>Average GPA: <strong style={{ color: '#e94b26' }}>{displayGrades.gpa?.toFixed(2) || 'N/A'}</strong></span>
         </div>
       )}
     </div>

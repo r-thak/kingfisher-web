@@ -105,7 +105,7 @@ function CustomDropdown({ options, value, onChange, placeholder, searchPlacehold
               }}
               style={{
                 padding: '8px 12px', cursor: 'pointer', fontSize: '14px',
-                color: opt[valueKey] === value ? '#983220' : 'var(--text-primary)',
+                color: opt[valueKey] === value ? '#e94b26' : 'var(--text-primary)',
                 fontWeight: opt[valueKey] === value ? '700' : '400',
                 backgroundColor: opt[valueKey] === value ? 'var(--bg-secondary)' : 'transparent',
                 borderBottom: opt[valueKey] === 0 ? '1px solid var(--border-color)' : 'none'

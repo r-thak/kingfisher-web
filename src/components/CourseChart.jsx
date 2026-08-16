@@ -47,7 +47,7 @@ function CourseChart({ grades }) {
         type: 'bar',
         data: data,
         itemStyle: {
-          color: '#E84A27'
+          color: '#e94b26'
         }
       }
     ]

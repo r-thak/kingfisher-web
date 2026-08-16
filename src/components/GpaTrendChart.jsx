@@ -73,9 +73,9 @@ function GpaTrendChart({ courseOfferings, selectedInstructorId }) {
       data: courseGpaData,
       smooth: true,
       symbolSize: 5,
-      itemStyle: { color: 'rgba(152,50,32,0.35)' },
-      lineStyle: { width: 2, color: 'rgba(152,50,32,0.35)', type: 'dashed' },
-      areaStyle: makeAreaStyle('#983220', 0.08),
+      itemStyle: { color: 'rgba(233,75,38,0.35)' },
+      lineStyle: { width: 2, color: 'rgba(233,75,38,0.35)', type: 'dashed' },
+      areaStyle: makeAreaStyle('#e94b26', 0.08),
       connectNulls: true,
     });
     // Instructor line as primary, only where they taught
@@ -98,9 +98,9 @@ function GpaTrendChart({ courseOfferings, selectedInstructorId }) {
       data: courseGpaData,
       smooth: true,
       symbolSize: 8,
-      itemStyle: { color: '#983220' },
+      itemStyle: { color: '#e94b26' },
       lineStyle: { width: 3 },
-      areaStyle: makeAreaStyle('#983220', 0.30),
+      areaStyle: makeAreaStyle('#e94b26', 0.30),
       connectNulls: true,
     });
   }

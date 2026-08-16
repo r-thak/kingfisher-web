@@ -463,7 +463,7 @@ function Search() {
                   onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
                   onMouseOut={e => e.currentTarget.style.backgroundColor = ''}
                 >
-                  <span style={{ fontWeight: 700, color: '#983220', minWidth: '45px' }}>{code}</span>
+                  <span style={{ fontWeight: 700, color: '#e94b26', minWidth: '45px' }}>{code}</span>
                   <span style={{ color: 'var(--text-secondary)' }}>{name}</span>
                 </div>
               ))}

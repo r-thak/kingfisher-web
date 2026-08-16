@@ -2,9 +2,9 @@
 
 :root {
 
-  --color-primary: #983220;
-  --color-primary-dark: #7a281a;
-  --color-primary-light: #b34a38;
+  --color-primary: #e94b26;
+  --color-primary-dark: #c73815;
+  --color-primary-light: #ee6c4d;
   --color-secondary: #0a0a0a;
   --color-secondary-dark: #0a0a0a;
   --color-secondary-light: #204070;
@@ -160,7 +160,7 @@ h1, h2, h3, h4, h5, h6 {
 .input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(152, 50, 32, 0.2);
+  box-shadow: 0 0 0 3px rgba(233, 75, 38, 0.2);
 }
 
 .site-header {

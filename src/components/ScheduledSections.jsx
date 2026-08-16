@@ -144,7 +144,6 @@ export default function ScheduledSections({ courseId }) {
           } else if (!selectedYearTerm || !data.some(t => t.yearTerm === selectedYearTerm)) {
             const defaultTerm = data.find(t => t.isDefault) || data[0];
             setSelectedYearTerm(defaultTerm.yearTerm);
-            localStorage.setItem('selectedTerm', defaultTerm.yearTerm);
           }
         }
       })

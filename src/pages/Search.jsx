@@ -145,7 +145,7 @@ function Search() {
           const savedTerm = localStorage.getItem('selectedTerm');
           const isValidSaved = savedTerm && (savedTerm === 'all' || data.some(t => t.yearTerm === savedTerm));
           if (!termStr) {
-            const termToUse = isValidSaved ? savedTerm : (data.find(t => t.isDefault)?.yearTerm || data[0].yearTerm);
+            const termToUse = isValidSaved ? savedTerm : 'all';
             navigate(buildSearchUrl({ term: termToUse }), { replace: true });
           }
         }

@@ -311,7 +311,7 @@ function Course() {
         <span className="divider">/</span>
         <a onClick={() => {
           const savedTerm = localStorage.getItem('selectedTerm');
-          const termParam = savedTerm ? `&term=${encodeURIComponent(savedTerm)}` : '';
+          const termParam = (savedTerm && savedTerm !== 'all') ? `&term=${encodeURIComponent(savedTerm)}` : '';
           navigate(`/search?subject=${subjectCode}${termParam}`);
         }}>{subjectCode}</a>
         <span className="divider">/</span>

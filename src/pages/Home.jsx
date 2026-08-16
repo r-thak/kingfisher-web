@@ -9,7 +9,7 @@ function Home() {
     if (e) e.preventDefault();
     if (query.trim()) {
       const savedTerm = localStorage.getItem('selectedTerm');
-      const termParam = savedTerm ? `&term=${encodeURIComponent(savedTerm)}` : '';
+      const termParam = (savedTerm && savedTerm !== 'all') ? `&term=${encodeURIComponent(savedTerm)}` : '';
       navigate(`/search?q=${encodeURIComponent(query)}${termParam}`);
     }
   };

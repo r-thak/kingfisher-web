@@ -8,7 +8,9 @@ function Home() {
   const handleSearch = (e) => {
     if (e) e.preventDefault();
     if (query.trim()) {
-      navigate(`/search?q=${encodeURIComponent(query)}`);
+      const savedTerm = localStorage.getItem('selectedTerm');
+      const termParam = savedTerm ? `&term=${encodeURIComponent(savedTerm)}` : '';
+      navigate(`/search?q=${encodeURIComponent(query)}${termParam}`);
     }
   };
 

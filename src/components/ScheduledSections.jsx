@@ -101,7 +101,10 @@ function formatLastRefreshed(lastRefreshedAt) {
 
 export default function ScheduledSections({ courseId }) {
   const [terms, setTerms] = useState([]);
-  const [selectedYearTerm, setSelectedYearTerm] = useState('');
+  const [selectedYearTerm, setSelectedYearTerm] = useState(() => {
+    const saved = localStorage.getItem('selectedTerm');
+    return (saved && saved !== 'all') ? saved : '';
+  });
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -134,8 +137,15 @@ export default function ScheduledSections({ courseId }) {
       .then(data => {
         setTerms(data || []);
         if (data && data.length > 0) {
-          const defaultTerm = data.find(t => t.isDefault) || data[0];
-          setSelectedYearTerm(defaultTerm.yearTerm);
+          const savedTerm = localStorage.getItem('selectedTerm');
+          const isValidSaved = savedTerm && savedTerm !== 'all' && data.some(t => t.yearTerm === savedTerm);
+          if (isValidSaved) {
+            setSelectedYearTerm(savedTerm);
+          } else if (!selectedYearTerm || !data.some(t => t.yearTerm === selectedYearTerm)) {
+            const defaultTerm = data.find(t => t.isDefault) || data[0];
+            setSelectedYearTerm(defaultTerm.yearTerm);
+            localStorage.setItem('selectedTerm', defaultTerm.yearTerm);
+          }
         }
       })
       .catch(() => {});
@@ -408,7 +418,11 @@ export default function ScheduledSections({ courseId }) {
           {/* Semester Selector */}
           <select
             value={selectedYearTerm}
-            onChange={e => setSelectedYearTerm(e.target.value)}
+            onChange={e => {
+              const val = e.target.value;
+              setSelectedYearTerm(val);
+              localStorage.setItem('selectedTerm', val);
+            }}
             style={{
               padding: '0.45em 0.85em',
               borderRadius: '4px',

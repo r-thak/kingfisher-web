@@ -141,14 +141,25 @@ function Search() {
     getTerms()
       .then(data => {
         setTerms(data || []);
-        if (data && data.length > 0 && !termStr) {
-          const def = data.find(t => t.isDefault) || data[0];
-          navigate(buildSearchUrl({ term: def.yearTerm }), { replace: true });
+        if (data && data.length > 0) {
+          const savedTerm = localStorage.getItem('selectedTerm');
+          const isValidSaved = savedTerm && (savedTerm === 'all' || data.some(t => t.yearTerm === savedTerm));
+          if (!termStr) {
+            const termToUse = isValidSaved ? savedTerm : (data.find(t => t.isDefault)?.yearTerm || data[0].yearTerm);
+            navigate(buildSearchUrl({ term: termToUse }), { replace: true });
+          }
         }
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync termStr to localStorage
+  useEffect(() => {
+    if (termStr) {
+      localStorage.setItem('selectedTerm', termStr);
+    }
+  }, [termStr]);
 
   // Fetch instructor suggestions as user types
   useEffect(() => {
@@ -251,14 +262,15 @@ function Search() {
   };
 
   const handleTermChange = (e) => {
-    navigate(buildSearchUrl({ term: e.target.value }));
+    const val = e.target.value;
+    localStorage.setItem('selectedTerm', val);
+    navigate(buildSearchUrl({ term: val }));
   };
 
   const clearAllFilters = () => {
     navigate(buildSearchUrl({
       subject: '',
       instructor: '',
-      term: '',
       cohort: '',
       filterMode: 'and'
     }));

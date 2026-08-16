@@ -309,7 +309,11 @@ function Course() {
       <div className="breadcrumb" style={{ marginBottom: '1.5rem' }}>
         <a onClick={() => navigate('/')}>Home</a>
         <span className="divider">/</span>
-        <a onClick={() => navigate(`/search?subject=${subjectCode}`)}>{subjectCode}</a>
+        <a onClick={() => {
+          const savedTerm = localStorage.getItem('selectedTerm');
+          const termParam = savedTerm ? `&term=${encodeURIComponent(savedTerm)}` : '';
+          navigate(`/search?subject=${subjectCode}${termParam}`);
+        }}>{subjectCode}</a>
         <span className="divider">/</span>
         <div className="active">{course.number}</div>
       </div>

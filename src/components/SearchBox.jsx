@@ -14,7 +14,9 @@ function SearchBox() {
 
   const performSearch = () => {
     if (searchValue.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+      const savedTerm = localStorage.getItem('selectedTerm');
+      const termParam = savedTerm ? `&term=${encodeURIComponent(savedTerm)}` : '';
+      navigate(`/search?q=${encodeURIComponent(searchValue)}${termParam}`);
     }
   };
 

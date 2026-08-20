@@ -1,7 +1,25 @@
 import axios from 'axios';
 
+// The same built bundle is served from multiple domains (e.g. kf.rthak.com and
+// meows.ro) off one host. Map each serving domain to the API host it should use.
+const API_HOSTS = {
+  'kf.rthak.com': 'https://kingfisherapi.rthak.com',
+  'meows.ro': 'https://api.meows.ro',
+};
+
+const DEFAULT_API_HOST = 'https://kingfisherapi.rthak.com';
+
+function resolveBaseURL() {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (import.meta.env.DEV) return '/v1';
+  // Normalize a leading www. so www.meows.ro works without an extra entry.
+  const hostname = (window.location.hostname || '').replace(/^www\./, '');
+  const host = API_HOSTS[hostname] || DEFAULT_API_HOST;
+  return `${host}/v1`;
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/v1' : 'https://kingfisherapi.rthak.com/v1'),
+  baseURL: resolveBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },

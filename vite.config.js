@@ -2,12 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { execSync } from 'child_process'
 
-let commitHash = 'dev'
-let commitShort = 'dev'
+let commitHash = process.env.COMMIT_HASH || 'dev'
+let commitShort = process.env.COMMIT_SHORT || 'dev'
 
 try {
-  commitHash = execSync('git rev-parse HEAD').toString().trim()
-  commitShort = execSync('git rev-parse --short HEAD').toString().trim()
+  if (commitHash === 'dev') commitHash = execSync('git rev-parse HEAD').toString().trim()
+  if (commitShort === 'dev') commitShort = execSync('git rev-parse --short HEAD').toString().trim()
 } catch (e) {
   console.warn('Failed to fetch git commit hash', e)
 }

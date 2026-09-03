@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCourse, getCourseGrades } from '../api';
-import { useTheme } from '../context/ThemeContext';
 import GpaTrendChart from '../components/GpaTrendChart';
 import CourseChartViewer from '../components/CourseChartViewer';
 import CourseDescription from '../components/CourseDescription';
@@ -130,7 +129,6 @@ function CustomDropdown({ options, value, onChange, placeholder, searchPlacehold
 function Course() {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  const { theme } = useTheme();
   
   const [course, setCourse] = useState(null);
   const [grades, setGrades] = useState(null);
@@ -192,7 +190,7 @@ function Course() {
   }, [courseId]);
 
   // Compute options for chart dropdowns
-  const courseOfferings = grades?.courseOfferings || [];
+  const courseOfferings = useMemo(() => grades?.courseOfferings ?? [], [grades]);
   
   const instructorOptions = useMemo(() => {
     const map = new Map();

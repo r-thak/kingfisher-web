@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { useTheme } from '../context/ThemeContext';
+import useTheme from '../hooks/useTheme';
 
 const GRADE_KEYS = ['aPlus', 'a', 'aMinus', 'bPlus', 'b', 'bMinus', 'cPlus', 'c', 'cMinus', 'dPlus', 'd', 'dMinus', 'f'];
 const GRADE_LABELS = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
@@ -39,7 +39,7 @@ function toPercent(grades) {
 function CourseChartViewer({ gradesData, selectedTermId, selectedInstructorId }) {
   const { theme } = useTheme();
   const cumulativeGrades = gradesData?.cumulative;
-  const courseOfferings = gradesData?.courseOfferings || [];
+  const courseOfferings = useMemo(() => gradesData?.courseOfferings ?? [], [gradesData]);
 
   const isFiltered = selectedTermId !== 0 || selectedInstructorId !== 0;
 
@@ -64,7 +64,7 @@ function CourseChartViewer({ gradesData, selectedTermId, selectedInstructorId })
 
     if (sections.length === 0) return null;
     return aggregateSections(sections);
-  }, [selectedTermId, selectedInstructorId, cumulativeGrades, courseOfferings, isFiltered]);
+  }, [selectedTermId, selectedInstructorId, courseOfferings, isFiltered]);
 
   const axisColor = theme === 'dark' ? '#eee' : '#333';
 

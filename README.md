@@ -24,3 +24,15 @@ bun run build
 ```sh
 docker compose up --build
 ```
+
+## Cloudflare Tunnel deployment
+
+The Docker Compose configuration binds the web server to `127.0.0.1:5903` so it
+cannot be reached directly from the Internet. Configure the Tunnel's public
+hostname to point to `http://localhost:5903` on the host.
+
+For U.S. visitor logging, configure Cloudflare Request Header Transform Rules to
+remove `x-kf-us-visitor` and `x-kf-state` from every request, then add both only
+when `ip.src.country eq "US"`. The server writes one JSON log record for each
+U.S. HTML page request using `cf-connecting-ip`, `x-kf-state`, the path, and the
+referrer.

@@ -139,12 +139,13 @@ export default function ScheduledSections({ courseId }) {
         if (data && data.length > 0) {
           const savedTerm = localStorage.getItem('selectedTerm');
           const isValidSaved = savedTerm && savedTerm !== 'all' && data.some(t => t.yearTerm === savedTerm);
-          if (isValidSaved) {
-            setSelectedYearTerm(savedTerm);
-          } else if (!selectedYearTerm || !data.some(t => t.yearTerm === selectedYearTerm)) {
+          setSelectedYearTerm(currentTerm => {
+            if (isValidSaved) return savedTerm;
+            if (currentTerm && data.some(t => t.yearTerm === currentTerm)) return currentTerm;
+
             const defaultTerm = data.find(t => t.isDefault) || data[0];
-            setSelectedYearTerm(defaultTerm.yearTerm);
-          }
+            return defaultTerm.yearTerm;
+          });
         }
       })
       .catch(() => {});
@@ -163,8 +164,8 @@ export default function ScheduledSections({ courseId }) {
         setDetailFilters(new Set());
         setSearchQuery('');
       })
-      .catch(err => {
-        if (err?.response?.status === 404) {
+      .catch(error => {
+        if (error?.response?.status === 404) {
           setSections([]);
         } else {
           setError('Could not load scheduled sections.');
@@ -202,7 +203,7 @@ export default function ScheduledSections({ courseId }) {
       // Reload sections
       const freshSections = await getScheduledSections(courseId, selectedYearTerm);
       setSections(freshSections || []);
-    } catch (err) {
+    } catch {
       setRefreshMessage('Failed to refresh sections from Course Explorer.');
     } finally {
       setRefreshing(false);

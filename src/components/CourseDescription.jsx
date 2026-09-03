@@ -5,7 +5,7 @@ import subjectMap from '../utils/subjectMap';
 const SUBJECT_KEYS = Object.keys(subjectMap).sort((a, b) => b.length - a.length);
 const SUBJECT_REGEX_STR = SUBJECT_KEYS.join('|');
 
-export function parseCourseDescription(text) {
+function parseCourseDescription(text) {
   if (!text) return [];
 
   // Match full course: Subject + Number (e.g. CS 124, MATH 241, AAS 100)

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { useTheme } from '../context/ThemeContext';
+import useTheme from '../hooks/useTheme';
 
 const GPA_MAP = { aPlus: 4.0, a: 4.0, aMinus: 3.67, bPlus: 3.33, b: 3.0, bMinus: 2.67, cPlus: 2.33, c: 2.0, cMinus: 1.67, dPlus: 1.33, d: 1.0, dMinus: 0.67, f: 0.0 };
 const SEASON_ORDER = { 'wi': 1, 'sp': 2, 'su': 3, 'fa': 4 };
